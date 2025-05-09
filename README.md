@@ -1638,7 +1638,7 @@ function fly()
                 flying=false e1:disconnect() e2:disconnect() return 
         end
         if key=="w" then
-            keys.w=true
+            keys.w=false
         elseif key=="s" then
             keys.s=true
         elseif key=="a" then
@@ -11351,7 +11351,7 @@ spawn(function()
 end)
 
 spawn(function()
-    while wait() do
+    while wait() d
         for i,v in pairs(game.Players.LocalPlayer:GetChildren()) do
             if v.Name == "DataLoaded" or v.Name == "DataPreloaded" then
                 v:Destroy()
@@ -11363,7 +11363,7 @@ end)
 OrionLib:Init()
 
 OrionLib:MakeNotification({
-    Name = "Sla Hub",
+    Name = "AllanHub",
     Content = "Loading Config Complete!!",
     Image = "rbxassetid://119980140458596",
     Time = 5
