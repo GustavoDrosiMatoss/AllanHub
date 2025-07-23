@@ -1,35 +1,37 @@
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
--- Caminho correto até os inimigos
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+-- A pasta onde estão os inimigos
 local enemiesFolder = workspace:WaitForChild("__Main"):WaitForChild("__Enemies"):WaitForChild("Client")
+local distanciaMaxima = 10 -- distância de ativação da Kill Aura
+local ativo = true
 
-local active = true
-local distanciaMaxima = 10 -- Distância para aplicar a Kill Aura
-
--- Função que verifica se o inimigo é válido
+-- Função que valida se o alvo é um inimigo legítimo
 local function isValidEnemy(model)
     return model:IsA("Model")
         and model:FindFirstChild("Humanoid")
         and model:FindFirstChild("HumanoidRootPart")
-        and model ~= LocalPlayer.Character -- evita matar o próprio jogador
+        and model ~= Character
 end
 
--- Loop constante na Heartbeat
+-- Loop ativado na Heartbeat
 RunService.Heartbeat:Connect(function()
-    if not active or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+    if not ativo then return end
+    if not Character or not Character:FindFirstChild("HumanoidRootPart") then return end
 
-    local playerRoot = LocalPlayer.Character.HumanoidRootPart
+    local playerRoot = Character:FindFirstChild("HumanoidRootPart")
 
-    for _, enemy in pairs(enemiesFolder:GetChildren()) do
+    for _, enemy in ipairs(enemiesFolder:GetChildren()) do
         if isValidEnemy(enemy) then
             local enemyRoot = enemy:FindFirstChild("HumanoidRootPart")
-            local distance = (enemyRoot.Position - playerRoot.Position).Magnitude
+            local humanoid = enemy:FindFirstChild("Humanoid")
 
-            if distance <= distanciaMaxima then
-                local humanoid = enemy:FindFirstChild("Humanoid")
-                if humanoid then
+            if enemyRoot and humanoid and humanoid.Health > 0 then
+                local distancia = (enemyRoot.Position - playerRoot.Position).Magnitude
+                if distancia <= distanciaMaxima then
                     humanoid:TakeDamage(humanoid.Health)
                     enemyRoot.CanCollide = false
                 end
@@ -37,4 +39,3 @@ RunService.Heartbeat:Connect(function()
         end
     end
 end)
-
