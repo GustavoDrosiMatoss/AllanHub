@@ -1,9 +1,10 @@
 -- 🧭 Interface de botão
 local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
 local playerGui = player:WaitForChild("PlayerGui")
 
 local screenGui = Instance.new("ScreenGui", playerGui)
-screenGui.Name = "KillAuraUI"
+screenGui.Name = "KillAuraProximityUI"
 screenGui.ResetOnSpawn = false
 
 local toggleButton = Instance.new("TextButton", screenGui)
@@ -15,8 +16,9 @@ toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 
--- 🎮 Lógica de ativação
+-- 🎮 Controle de ativação
 local ativo = false
+local distanciaMaxima = 10 -- Alvo: 10 studs ao redor
 
 toggleButton.MouseButton1Click:Connect(function()
     ativo = not ativo
@@ -24,20 +26,22 @@ toggleButton.MouseButton1Click:Connect(function()
     toggleButton.BackgroundColor3 = ativo and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
 end)
 
--- 🌀 Loop de execução da Kill Aura
+-- 🌀 Loop da Kill Aura por proximidade
 task.spawn(function()
     while task.wait(0.1) do
-        if ativo then
+        if ativo and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             pcall(function()
-                sethiddenproperty(player, "SimulationRadius", math.huge)
-                
-                -- Varre todo workspace em busca de NPCs com Humanoid
-                for _, obj in pairs(workspace:GetDescendants()) do
-                    if obj:IsA("Humanoid") and obj.Health > 0 then
-                        obj:TakeDamage(obj.Health)
-                        local rootPart = obj.Parent:FindFirstChild("HumanoidRootPart")
-                        if rootPart then
-                            rootPart.CanCollide = false
+                local root = player.Character.HumanoidRootPart
+
+                for _, humanoid in pairs(workspace:GetDescendants()) do
+                    if humanoid:IsA("Humanoid") and humanoid.Health > 0 then
+                        local npcRoot = humanoid.Parent:FindFirstChild("HumanoidRootPart")
+                        if npcRoot then
+                            local distancia = (npcRoot.Position - root.Position).Magnitude
+                            if distancia <= distanciaMaxima then
+                                humanoid:TakeDamage(humanoid.Health)
+                                npcRoot.CanCollide = false
+                            end
                         end
                     end
                 end
