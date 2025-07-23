@@ -1,52 +1,40 @@
-local player = game:GetService("Players").LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local playerGui = player:WaitForChild("PlayerGui")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
 
--- Interface
-local screenGui = Instance.new("ScreenGui", playerGui)
-screenGui.Name = "KillAuraProximityUI"
-screenGui.ResetOnSpawn = false
+-- Caminho correto até os inimigos
+local enemiesFolder = workspace:WaitForChild("__Main"):WaitForChild("__Enemies"):WaitForChild("Client")
 
-local toggleButton = Instance.new("TextButton", screenGui)
-toggleButton.Size = UDim2.new(0, 160, 0, 40)
-toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.Text = "Ativar Kill Aura"
-toggleButton.BackgroundColor3 = Color3.fromRGB(255, 85, 85)
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.Font = Enum.Font.SourceSansBold
-toggleButton.TextSize = 18
+local active = true
+local distanciaMaxima = 10 -- Distância para aplicar a Kill Aura
 
--- Toggle
-local ativo = false
-local distanciaMaxima = 10
+-- Função que verifica se o inimigo é válido
+local function isValidEnemy(model)
+    return model:IsA("Model")
+        and model:FindFirstChild("Humanoid")
+        and model:FindFirstChild("HumanoidRootPart")
+        and model ~= LocalPlayer.Character -- evita matar o próprio jogador
+end
 
-toggleButton.MouseButton1Click:Connect(function()
-    ativo = not ativo
-    toggleButton.Text = ativo and "Desativar Kill Aura" or "Ativar Kill Aura"
-    toggleButton.BackgroundColor3 = ativo and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
-end)
+-- Loop constante na Heartbeat
+RunService.Heartbeat:Connect(function()
+    if not active or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
 
--- Kill Aura com filtro: ignora o jogador
-task.spawn(function()
-    while task.wait(0.1) do
-        if ativo and character and character:FindFirstChild("HumanoidRootPart") then
-            pcall(function()
-                local root = character.HumanoidRootPart
-                for _, humanoid in pairs(workspace:GetDescendants()) do
-                    if humanoid:IsA("Humanoid") and humanoid.Health > 0 then
-                        local parent = humanoid.Parent
-                        -- IGNORA o próprio jogador
-                        if parent ~= character and parent:FindFirstChild("HumanoidRootPart") then
-                            local npcRoot = parent.HumanoidRootPart
-                            local distancia = (npcRoot.Position - root.Position).Magnitude
-                            if distancia <= distanciaMaxima then
-                                humanoid:TakeDamage(humanoid.Health)
-                                npcRoot.CanCollide = false
-                            end
-                        end
-                    end
+    local playerRoot = LocalPlayer.Character.HumanoidRootPart
+
+    for _, enemy in pairs(enemiesFolder:GetChildren()) do
+        if isValidEnemy(enemy) then
+            local enemyRoot = enemy:FindFirstChild("HumanoidRootPart")
+            local distance = (enemyRoot.Position - playerRoot.Position).Magnitude
+
+            if distance <= distanciaMaxima then
+                local humanoid = enemy:FindFirstChild("Humanoid")
+                if humanoid then
+                    humanoid:TakeDamage(humanoid.Health)
+                    enemyRoot.CanCollide = false
                 end
-            end)
+            end
         end
     end
 end)
+
