@@ -1,8 +1,8 @@
--- 🧭 Interface de botão
 local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Interface
 local screenGui = Instance.new("ScreenGui", playerGui)
 screenGui.Name = "KillAuraProximityUI"
 screenGui.ResetOnSpawn = false
@@ -16,9 +16,9 @@ toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.TextSize = 18
 
--- 🎮 Controle de ativação
+-- Toggle
 local ativo = false
-local distanciaMaxima = 10 -- Alvo: 10 studs ao redor
+local distanciaMaxima = 10
 
 toggleButton.MouseButton1Click:Connect(function()
     ativo = not ativo
@@ -26,17 +26,18 @@ toggleButton.MouseButton1Click:Connect(function()
     toggleButton.BackgroundColor3 = ativo and Color3.fromRGB(85, 255, 85) or Color3.fromRGB(255, 85, 85)
 end)
 
--- 🌀 Loop da Kill Aura por proximidade
+-- Kill Aura com filtro: ignora o jogador
 task.spawn(function()
     while task.wait(0.1) do
-        if ativo and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        if ativo and character and character:FindFirstChild("HumanoidRootPart") then
             pcall(function()
-                local root = player.Character.HumanoidRootPart
-
+                local root = character.HumanoidRootPart
                 for _, humanoid in pairs(workspace:GetDescendants()) do
                     if humanoid:IsA("Humanoid") and humanoid.Health > 0 then
-                        local npcRoot = humanoid.Parent:FindFirstChild("HumanoidRootPart")
-                        if npcRoot then
+                        local parent = humanoid.Parent
+                        -- IGNORA o próprio jogador
+                        if parent ~= character and parent:FindFirstChild("HumanoidRootPart") then
+                            local npcRoot = parent.HumanoidRootPart
                             local distancia = (npcRoot.Position - root.Position).Magnitude
                             if distancia <= distanciaMaxima then
                                 humanoid:TakeDamage(humanoid.Health)
