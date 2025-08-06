@@ -1,9 +1,10 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- Carrega a Fluent GUI com link corrigido
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/main.lua"))()
 
--- Criar Janela
+-- Cria a janela
 local Window = Fluent:CreateWindow({
-    Title = "Dungeon Hub",
-    SubTitle = "Arise Crossover",
+    Title = "Allan Hub",
+    SubTitle = "By Allan Heberty",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 320),
     Acrylic = true,
@@ -11,18 +12,13 @@ local Window = Fluent:CreateWindow({
     MinimizeKey = Enum.KeyCode.End
 })
 
-local tab = Window:AddTab({
+-- Cria a aba de farm
+local t = Window:AddTab({
     Title = "Dungeon",
     Icon = "swords"
 })
 
--- Variáveis de controle
-local adicionarItem = false
-local idDungeon = 7368292297
-local nomeItem = "DgKaijuRune"
-local slot = 1
-
--- Função que cria a dungeon
+-- Funções de dungeon
 local function criarDungeon()
     local args = {
         [1] = {
@@ -37,16 +33,15 @@ local function criarDungeon()
     game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
 end
 
--- Função que adiciona item
-local function adicionarItemDungeon()
+local function adicionarItem(dungeonID, itemName, slot)
     local args = {
         [1] = {
             [1] = {
-                ["Dungeon"] = idDungeon,
+                ["Dungeon"] = dungeonID,
                 ["Action"] = "AddItems",
-                ["Slot"] = slot,
+                ["Slot"] = slot or 1,
                 ["Event"] = "DungeonAction",
-                ["Item"] = nomeItem
+                ["Item"] = itemName or "DgKaijuRune"
             },
             [2] = "\12"
         }
@@ -55,12 +50,11 @@ local function adicionarItemDungeon()
     game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
 end
 
--- Função que inicia dungeon
-local function iniciarDungeon()
+local function iniciarDungeon(dungeonID)
     local args = {
         [1] = {
             [1] = {
-                ["Dungeon"] = idDungeon,
+                ["Dungeon"] = dungeonID,
                 ["Event"] = "DungeonAction",
                 ["Action"] = "Start"
             },
@@ -71,27 +65,56 @@ local function iniciarDungeon()
     game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
 end
 
--- Botão principal
-tab:AddButton({
-    Title = "Iniciar Dungeon",
-    Description = "Cria, adiciona item (se ativado) e inicia",
+-- Adiciona os botões na GUI
+t:AddButton({
+    Title = "Criar Dungeon",
+    Description = "Cria a dungeon",
     Callback = function()
         criarDungeon()
-        wait(1)
-        if adicionarItem then
-            adicionarItemDungeon()
-            wait(1)
-        end
-        iniciarDungeon()
+        Fluent:Notify({
+            Title = "Dungeon",
+            Content = "Dungeon criada com sucesso!",
+            Duration = 4
+        })
     end
 })
 
--- Toggle para adicionar item
-tab:AddToggle({
-    Title = "Adicionar Item",
-    Description = "Adiciona item à dungeon antes de iniciar",
-    Default = false,
-    Callback = function(value)
-        adicionarItem = value
+t:AddButton({
+    Title = "Adicionar Item na Dungeon",
+    Description = "Adiciona Kaiju Rune (Slot 1)",
+    Callback = function()
+        local id = tonumber(Fluent:Prompt({
+            Title = "ID da Dungeon",
+            Content = "Digite o ID da Dungeon:",
+            Placeholder = "ex: 7368292297"
+        }))
+        if id then
+            adicionarItem(id, "DgKaijuRune", 1)
+            Fluent:Notify({
+                Title = "Dungeon",
+                Content = "Item adicionado!",
+                Duration = 4
+            })
+        end
+    end
+})
+
+t:AddButton({
+    Title = "Iniciar Dungeon",
+    Description = "Inicia a dungeon criada",
+    Callback = function()
+        local id = tonumber(Fluent:Prompt({
+            Title = "ID da Dungeon",
+            Content = "Digite o ID da Dungeon:",
+            Placeholder = "ex: 7368292297"
+        }))
+        if id then
+            iniciarDungeon(id)
+            Fluent:Notify({
+                Title = "Dungeon",
+                Content = "Dungeon iniciada!",
+                Duration = 4
+            })
+        end
     end
 })
