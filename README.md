@@ -1,29 +1,10 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- Conexão com os serviços
+local RS = game:GetService("ReplicatedStorage")
+local remote = RS:WaitForChild("BridgeNet2").dataRemoteEvent
 
--- Criar Janela
-local Window = Fluent:CreateWindow({
-    Title = "Dungeon Hub",
-    SubTitle = "Arise Crossover",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 320),
-    Acrylic = true,
-    Theme = "dark",
-    MinimizeKey = Enum.KeyCode.End
-})
-
-local tab = Window:AddTab({
-    Title = "Dungeon",
-    Icon = "swords"
-})
-
--- Variáveis de controle
-local adicionarItem = false
-local idDungeon = 7368292297
-local nomeItem = "DgKaijuRune"
-local slot = 1
-
--- Função que cria a dungeon
+-- 🔨 Cria a dungeon e tenta encontrar o ID automaticamente
 local function criarDungeon()
+    -- Envia o comando para criar a dungeon
     local args = {
         [1] = {
             [1] = {
@@ -34,33 +15,61 @@ local function criarDungeon()
         }
     }
 
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    remote:FireServer(unpack(args))
+    print("📤 Criando dungeon...")
+
+    -- Tenta localizar o ID no ReplicatedStorage
+    local timeout = 10
+    local timer = 0
+    local id = nil
+
+    while timer < timeout and not id do
+        for _, obj in pairs(RS:GetChildren()) do
+            if obj.Name:lower():match("dungeon") and obj:IsA("Folder") then
+                local idValue = obj:FindFirstChild("DungeonId")
+                if idValue and idValue:IsA("IntValue") then
+                    id = idValue.Value
+                    print("🎯 Dungeon ID detectado:", id)
+                    break
+                end
+            end
+        end
+        task.wait(0.5)
+        timer += 0.5
+    end
+
+    if not id then
+        warn("❌ DungeonId não encontrado.")
+    end
+
+    return id
 end
 
--- Função que adiciona item
-local function adicionarItemDungeon()
+-- 🧪 Adiciona item à dungeon
+local function adicionarItem(dungeonID, itemName, slot)
     local args = {
         [1] = {
             [1] = {
-                ["Dungeon"] = idDungeon,
+                ["Dungeon"] = dungeonID,
                 ["Action"] = "AddItems",
-                ["Slot"] = slot,
+                ["Slot"] = slot or 1,
                 ["Event"] = "DungeonAction",
-                ["Item"] = nomeItem
+                ["Item"] = itemName or "DgKaijuRune"
             },
             [2] = "\12"
         }
     }
 
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    remote:FireServer(unpack(args))
+    print("✔ Item adicionado.")
 end
 
--- Função que inicia dungeon
-local function iniciarDungeon()
+-- 🚀 Inicia a dungeon
+local function iniciarDungeon(dungeonID)
     local args = {
         [1] = {
             [1] = {
-                ["Dungeon"] = idDungeon,
+                ["Dungeon"] = dungeonID,
                 ["Event"] = "DungeonAction",
                 ["Action"] = "Start"
             },
@@ -68,30 +77,18 @@ local function iniciarDungeon()
         }
     }
 
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    remote:FireServer(unpack(args))
+    print("🚀 Dungeon iniciada!")
 end
 
--- Botão principal
-tab:AddButton({
-    Title = "Iniciar Dungeon",
-    Description = "Cria, adiciona item (se ativado) e inicia",
-    Callback = function()
-        criarDungeon()
-        wait(1)
-        if adicionarItem then
-            adicionarItemDungeon()
-            wait(1)
-        end
-        iniciarDungeon()
-    end
-})
+-- 🔁 Execução automática do fluxo
+local dungeonID = criarDungeon()
 
--- Toggle para adicionar item
-tab:AddToggle({
-    Title = "Adicionar Item",
-    Description = "Adiciona item à dungeon antes de iniciar",
-    Default = false,
-    Callback = function(value)
-        adicionarItem = value
-    end
-})
+if dungeonID then
+    task.wait(2)
+    adicionarItem(dungeonID, "DgKaijuRune", 1)
+    task.wait(2)
+    iniciarDungeon(dungeonID)
+else
+    warn("⚠️ Falha ao detectar o ID da dungeon.")
+end
