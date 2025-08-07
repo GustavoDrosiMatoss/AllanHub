@@ -1,89 +1,93 @@
--- Allan Hub Lite - GUI Version
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local LocalPlayer = Players.LocalPlayer
+-- Carregar Fluent UI
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/FluentHub/Fluent/main/ui.lua"))()
 
-local BridgeNet2 = ReplicatedStorage:WaitForChild("BridgeNet2")
-local Remote = BridgeNet2:WaitForChild("dataRemoteEvent")
+local gui = Fluent:CreateWindow({
+    Title = "Allan Hub | Arise Crossover Lite",
+    SubTitle = "by yAllanX6",
+    TabWidth = 120,
+    Size = UDim2.fromOffset(500, 400),
+    Acrylic = true,
+    Theme = "Dark",
+    Center = true,
+    Draggable = true
+})
 
--- Funções principais
+-- Função para criar dungeon
 local function criarDungeon()
-    Remote:FireServer({
-        {
-            { Event = "DungeonAction", Action = "Create" },
-            "\12"
+    local args = {
+        [1] = {
+            [1] = {
+                ["Event"] = "DungeonAction",
+                ["Action"] = "Create"
+            },
+            [2] = "\12"
         }
-    })
+    }
+    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    print("✔ Dungeon criada.")
 end
 
+-- Função para iniciar dungeon
 local function iniciarDungeon()
-    Remote:FireServer({
-        {
-            { Event = "DungeonAction", Action = "Start" }
+    local args = {
+        [1] = {
+            [1] = {
+                ["Event"] = "DungeonAction",
+                ["Action"] = "Start"
+            },
+            [2] = "\12"
         }
-    })
+    }
+    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    print("🚀 Dungeon iniciada.")
 end
 
-local function teleportarBoss()
-    local boss = workspace:FindFirstChild("DungeonBoss")
-    if boss and boss:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character:PivotTo(boss.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0))
-    end
-end
-
-local autoFarm = false
-local function autoAttack()
-    while autoFarm do
-        task.wait(0.5)
-        for _, mob in pairs(workspace:GetChildren()) do
-            if mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character:PivotTo(mob.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0))
-                Remote:FireServer({
-                    {
-                        Event = "SkillRemote",
-                        Skill = "Slash",
-                        Mob = mob.Name
-                    }
-                })
-                break
-            end
+-- Função para usar todas skills
+local function usarSkills()
+    for _, skill in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+        if skill:IsA("Tool") then
+            game:GetService("ReplicatedStorage").BridgeNet2.Tool:FireServer("UseSkill", skill.Name)
         end
     end
 end
 
--- GUI
-local gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-gui.Name = "AllanHubLiteGUI"
+-- Dungeon Tab
+local dungeonTab = gui:AddTab({ Title = "Dungeon", Icon = "swords" })
 
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 200, 0, 220)
-frame.Position = UDim2.new(0, 10, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+dungeonTab:AddButton({
+    Title = "Criar Dungeon",
+    Description = "Cria uma dungeon automaticamente",
+    Callback = criarDungeon
+})
 
--- Botão auxiliar
-local function criarBotao(nome, ordem, callback)
-    local botao = Instance.new("TextButton", frame)
-    botao.Size = UDim2.new(1, -10, 0, 40)
-    botao.Position = UDim2.new(0, 5, 0, 10 + ((ordem - 1) * 45))
-    botao.Text = nome
-    botao.TextColor3 = Color3.new(1, 1, 1)
-    botao.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    botao.BorderSizePixel = 0
-    botao.Font = Enum.Font.SourceSans
-    botao.TextSize = 18
-    botao.MouseButton1Click:Connect(callback)
-end
+dungeonTab:AddButton({
+    Title = "Iniciar Dungeon",
+    Description = "Inicia a dungeon criada",
+    Callback = iniciarDungeon
+})
 
--- Criar os botões
-criarBotao("Criar Dungeon", 1, criarDungeon)
-criarBotao("Iniciar Dungeon", 2, iniciarDungeon)
-criarBotao("Teleportar Boss", 3, teleportarBoss)
-criarBotao("Auto Farm ON", 4, function()
-    if not autoFarm then
-        autoFarm = true
-        autoAttack()
+-- Skills Tab
+local skillsTab = gui:AddTab({ Title = "Skills", Icon = "zap" })
+
+skillsTab:AddButton({
+    Title = "Usar Skills",
+    Description = "Usa todas as skills do inventário",
+    Callback = usarSkills
+})
+
+-- AutoFarm Tab (exemplo básico)
+local autoFarmTab = gui:AddTab({ Title = "Auto Farm", Icon = "cpu" })
+
+local autoFarm = false
+
+autoFarmTab:AddToggle({
+    Title = "Ativar Auto Farm",
+    Default = false,
+    Callback = function(value)
+        autoFarm = value
+        while autoFarm do
+            usarSkills()
+            task.wait(2)
+        end
     end
-end)
-criarBotao("Auto Farm OFF", 5, function()
-    autoFarm = false
-end)
+})
