@@ -1,94 +1,92 @@
--- Conexão com os serviços
-local RS = game:GetService("ReplicatedStorage")
-local remote = RS:WaitForChild("BridgeNet2").dataRemoteEvent
+-- Allan Hub - Arise Crossover Lite (versão limpa)
+-- Criado para uso educacional/teste. Recriado a partir do script original ofuscado.
 
--- 🔨 Cria a dungeon e tenta encontrar o ID automaticamente
+-- Serviços necessários
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Referência ao RemoteEvent usado para interações
+local Bridge = ReplicatedStorage:WaitForChild("BridgeNet2")
+local Remote = Bridge:WaitForChild("dataRemoteEvent")
+
+-- Função: criar dungeon
 local function criarDungeon()
-    -- Envia o comando para criar a dungeon
     local args = {
-        [1] = {
-            [1] = {
-                ["Event"] = "DungeonAction",
-                ["Action"] = "Create"
+        {
+            {
+                Event = "DungeonAction",
+                Action = "Create"
             },
-            [2] = "\12"
+            "\12"
         }
     }
+    Remote:FireServer(unpack(args))
+    print("✔ Dungeon criada.")
+end
 
-    remote:FireServer(unpack(args))
-    print("📤 Criando dungeon...")
+-- Função: iniciar dungeon
+local function iniciarDungeon()
+    local args = {
+        {
+            {
+                Event = "DungeonAction",
+                Action = "Start"
+            }
+        }
+    }
+    Remote:FireServer(unpack(args))
+    print("▶ Dungeon iniciada.")
+end
 
-    -- Tenta localizar o ID no ReplicatedStorage
-    local timeout = 10
-    local timer = 0
-    local id = nil
+-- Função: teleportar para o boss
+local function teleportarBoss()
+    local boss = workspace:FindFirstChild("DungeonBoss")
+    if boss and boss:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character:PivotTo(boss.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0))
+        print("🌀 Teleportado para o boss.")
+    else
+        print("⚠ Boss não encontrado.")
+    end
+end
 
-    while timer < timeout and not id do
-        for _, obj in pairs(RS:GetChildren()) do
-            if obj.Name:lower():match("dungeon") and obj:IsA("Folder") then
-                local idValue = obj:FindFirstChild("DungeonId")
-                if idValue and idValue:IsA("IntValue") then
-                    id = idValue.Value
-                    print("🎯 Dungeon ID detectado:", id)
-                    break
-                end
+-- Função: atacar mobs automaticamente
+local function autoAttack()
+    while true do
+        task.wait(0.2)
+        for _, mob in pairs(workspace:GetChildren()) do
+            if mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character:PivotTo(mob.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0))
+                Remote:FireServer({
+                    {
+                        Event = "SkillRemote",
+                        Skill = "Slash",
+                        Mob = mob.Name
+                    }
+                })
+                print("⚔ Atacando " .. mob.Name)
+                break
             end
         end
-        task.wait(0.5)
-        timer += 0.5
     end
-
-    if not id then
-        warn("❌ DungeonId não encontrado.")
-    end
-
-    return id
 end
 
--- 🧪 Adiciona item à dungeon
-local function adicionarItem(dungeonID, itemName, slot)
-    local args = {
-        [1] = {
-            [1] = {
-                ["Dungeon"] = dungeonID,
-                ["Action"] = "AddItems",
-                ["Slot"] = slot or 1,
-                ["Event"] = "DungeonAction",
-                ["Item"] = itemName or "DgKaijuRune"
-            },
-            [2] = "\12"
-        }
-    }
+-- GUI básica
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 200, 0, 220)
+Frame.Position = UDim2.new(0, 10, 0, 10)
 
-    remote:FireServer(unpack(args))
-    print("✔ Item adicionado.")
+local function criarBotao(nome, func)
+    local botao = Instance.new("TextButton", Frame)
+    botao.Size = UDim2.new(1, 0, 0, 40)
+    botao.Text = nome
+    botao.MouseButton1Click:Connect(func)
 end
 
--- 🚀 Inicia a dungeon
-local function iniciarDungeon(dungeonID)
-    local args = {
-        [1] = {
-            [1] = {
-                ["Dungeon"] = dungeonID,
-                ["Event"] = "DungeonAction",
-                ["Action"] = "Start"
-            },
-            [2] = "\12"
-        }
-    }
-
-    remote:FireServer(unpack(args))
-    print("🚀 Dungeon iniciada!")
-end
-
--- 🔁 Execução automática do fluxo
-local dungeonID = criarDungeon()
-
-if dungeonID then
-    task.wait(2)
-    adicionarItem(dungeonID, "DgKaijuRune", 1)
-    task.wait(2)
-    iniciarDungeon(dungeonID)
-else
-    warn("⚠️ Falha ao detectar o ID da dungeon.")
-end
+criarBotao("Criar Dungeon", criarDungeon)
+criarBotao("Iniciar Dungeon", iniciarDungeon)
+criarBotao("Teleportar Boss", teleportarBoss)
+criarBotao("Auto Atacar", function()
+    task.spawn(autoAttack)
+end)
