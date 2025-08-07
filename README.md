@@ -1,128 +1,112 @@
--- Carregar Fluent GUI
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/FluentHub/Fluent/main/ui.lua"))()
+-- Inicia biblioteca Fluent UI
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()  -- baseado no README oficial 1
 
+-- Cria janela principal
 local gui = Fluent:CreateWindow({
     Title = "Allan Hub | Arise Crossover Lite",
     SubTitle = "by yAllanX6",
     TabWidth = 120,
-    Size = UDim2.fromOffset(500, 400),
+    Size = UDim2.fromOffset(550, 450),
     Acrylic = true,
     Theme = "Dark",
-    Center = true,
     Draggable = true
 })
 
--- 🔄 Funções principais
+local RepStorage = game:GetService("ReplicatedStorage")
+local Remote = RepStorage:WaitForChild("BridgeNet2"):WaitForChild("dataRemoteEvent")
+local Player = game.Players.LocalPlayer
+
+local autoFarm = false
+
+-- Funções principais
 local function criarDungeon()
-    local args = {
-        [1] = {
-            [1] = {["Event"] = "DungeonAction", ["Action"] = "Create"},
-            [2] = "\12"
-        }
-    }
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    Remote:FireServer({{{Event="DungeonAction", Action="Create"}, "\12"}})
 end
 
 local function iniciarDungeon()
-    local args = {
-        [1] = {
-            [1] = {["Event"] = "DungeonAction", ["Action"] = "Start"},
-            [2] = "\12"
-        }
-    }
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    Remote:FireServer({{{Event="DungeonAction", Action="Start"}, "\12"}})
 end
 
-local function usarSkills()
-    for _, tool in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
-        if tool:IsA("Tool") then
-            game:GetService("ReplicatedStorage").BridgeNet2.Tool:FireServer("UseSkill", tool.Name)
-        end
-    end
+local function usarSkill(spec)
+    Remote:FireServer({{Event="SkillRemote", Skill=spec, Mob=""}})
 end
 
--- 🧠 Anti-AFK
 local function ativarAntiAFK()
-    game:GetService("Players").LocalPlayer.Idled:Connect(function()
-        game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    Player.Idled:Connect(function()
+        local vu = game:GetService("VirtualUser")
+        vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
         task.wait(1)
-        game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+        vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
     end)
 end
 
--- 🧭 Teleporte rápido
 local teleportes = {
-    ["Dungeon Lobby"] = Vector3.new(-95, 5, -210),
-    ["Main City"] = Vector3.new(150, 10, 300),
-    ["King Slime"] = Vector3.new(500, 20, -100),
-    ["Skeleton Boss"] = Vector3.new(-250, 10, 600)
+    ["Lobby"] = Vector3.new(-95,5,-210),
+    ["Main City"] = Vector3.new(150,10,300),
+    ["King Slime"] = Vector3.new(500,20,-100),
+    ["Skeleton Boss"] = Vector3.new(-250,10,600)
 }
 
 local function teleportar(pos)
-    local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char:MoveTo(pos)
-    end
+    local char = Player.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if hrp then char:SetPrimaryPartCFrame(CFrame.new(pos)) end
 end
 
--- 🤝 Auto Join Dungeon (Player Proximity)
 local function autoJoinDungeon()
     while true do
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                local myHRP = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                local otherHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                if myHRP and otherHRP then
-                    local distance = (myHRP.Position - otherHRP.Position).Magnitude
-                    if distance < 10 then
-                        iniciarDungeon()
-                    end
+        task.wait(5)
+        local myHRP = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+        if myHRP then
+            for _, plr in pairs(game.Players:GetPlayers()) do
+                if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local dist = (myHRP.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                    if dist < 10 then iniciarDungeon() break end
                 end
             end
         end
-        task.wait(5)
     end
 end
 
--- 🧾 GUI Tabs e Botões
-local tabDungeon = gui:AddTab({ Title = "Dungeon", Icon = "swords" })
-tabDungeon:AddButton({ Title = "Criar Dungeon", Callback = criarDungeon })
-tabDungeon:AddButton({ Title = "Iniciar Dungeon", Callback = iniciarDungeon })
+-- GUI Tabs e elementos
+local tabDungeon = gui:AddTab({Title="Dungeon", Icon="swords"})
+tabDungeon:AddButton({Title="Criar Dungeon", Callback=criarDungeon})
+tabDungeon:AddButton({Title="Iniciar Dungeon", Callback=iniciarDungeon})
 
-local tabSkills = gui:AddTab({ Title = "Skills", Icon = "zap" })
-tabSkills:AddButton({ Title = "Usar Skills", Callback = usarSkills })
+local tabSkills = gui:AddTab({Title="Skills", Icon="zap"})
+local dropdown = tabSkills:AddDropdown("SkillsList", {
+    Title = "Escolha uma Skill",
+    Values = {"Slash", "Fireball", "Teleport", "Heal"},
+    Default = "Slash",
+    Multi = false,
+})
+dropdown:OnChanged(function(val)
+    usarSkill(val)
+end)
 
-local autoFarmTab = gui:AddTab({ Title = "Auto Farm", Icon = "cpu" })
-local autoFarm = false
-autoFarmTab:AddToggle({
-    Title = "Ativar Auto Farm",
-    Default = false,
-    Callback = function(state)
-        autoFarm = state
+local tabFarm = gui:AddTab({Title="Auto Farm", Icon="cpu"})
+tabFarm:AddToggle({
+    Title="Ativar Auto Farm",
+    Default=false,
+    Callback=function(v)
+        autoFarm = v
         while autoFarm do
-            usarSkills()
+            usarSkill(dropdown.Value)
             task.wait(2)
         end
     end
 })
 
-local afkTab = gui:AddTab({ Title = "Anti-AFK", Icon = "shield" })
-afkTab:AddButton({ Title = "Ativar Anti-AFK", Callback = ativarAntiAFK })
+local tabAFK = gui:AddTab({Title="Anti-AFK", Icon="shield"})
+tabAFK:AddButton({Title="Ativar Anti-AFK", Callback=ativarAntiAFK})
 
-local tpTab = gui:AddTab({ Title = "Teleporte", Icon = "map" })
-for nome, pos in pairs(teleportes) do
-    tpTab:AddButton({
-        Title = nome,
-        Description = "Teleportar para " .. nome,
-        Callback = function() teleportar(pos) end
-    })
+local tabTeleport = gui:AddTab({Title="Teleporte", Icon="map"})
+for nome,pos in pairs(teleportes) do
+    tabTeleport:AddButton({Title=nome, Callback=function() teleportar(pos) end})
 end
 
-local autoJoinTab = gui:AddTab({ Title = "Auto Join", Icon = "users" })
-autoJoinTab:AddButton({
-    Title = "Auto Join Dungeon",
-    Description = "Inicia dungeon ao detectar jogador próximo",
-    Callback = function()
-        task.spawn(autoJoinDungeon)
-    end
-})
+local tabJoin = gui:AddTab({Title="Auto Join", Icon="users"})
+tabJoin:AddButton({Title="Auto Join Dungeon", Callback=function() task.spawn(autoJoinDungeon) end})
+
+-- Notificação de carregamento
+Fluent:Notify({Title="Allan Hub", Content="GUI carregada.", Duration=5})
