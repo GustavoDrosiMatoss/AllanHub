@@ -5,14 +5,11 @@ local andarSaida = 1
 local currentFloor = 0
 local configFile = "allan_hub_castelo.json"
 
-local dungeonID = "" -- Agora você insere o ID manualmente
-
 -- Função para salvar configuração
 local function salvarConfig()
     local data = {
         entrada = andarEntrada,
-        saida = andarSaida,
-        dungeonID = dungeonID
+        saida = andarSaida
     }
     writefile(configFile, game:GetService("HttpService"):JSONEncode(data))
     print("💾 Configuração salva!")
@@ -25,8 +22,7 @@ local function carregarConfig()
         local data = game:GetService("HttpService"):JSONDecode(content)
         andarEntrada = tonumber(data.entrada) or andarEntrada
         andarSaida = tonumber(data.saida) or andarSaida
-        dungeonID = tostring(data.dungeonID or "")
-        print("📂 Configuração carregada! Entrada: " .. andarEntrada .. " | Saída: " .. andarSaida .. " | DungeonID: " .. dungeonID)
+        print("📂 Configuração carregada! Entrada: " .. andarEntrada .. " | Saída: " .. andarSaida)
     else
         salvarConfig()
     end
@@ -40,7 +36,7 @@ local Window = Fluent:CreateWindow({
     Title = "Allan Hub",
     SubTitle = "By Allan",
     TabWidth = 160,
-    Size = UDim2.fromOffset(580, 400),
+    Size = UDim2.fromOffset(580, 320),
     Acrylic = true,
     Theme = "dark",
     MinimizeKey = Enum.KeyCode.End
@@ -117,8 +113,8 @@ local function sairCastelo()
     print("Saindo no andar " .. andarSaida)
 end
 
-local function criarDungeon()
-    local args = {
+local function criarEDarStartNaDungeon()
+    local createArgs = {
         [1] = {
             [1] = {
                 ["Event"] = "DungeonAction",
@@ -127,27 +123,23 @@ local function criarDungeon()
             [2] = "\12"
         }
     }
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(createArgs))
     print("✔ Dungeon criada.")
-end
 
-local function iniciarDungeon()
-    if dungeonID == "" then
-        print("⚠️ Por favor, insira o ID da dungeon antes de iniciar!")
-        return
-    end
-    local args = {
+    task.wait(1) -- espera 1 segundo antes de iniciar
+
+    local startArgs = {
         [1] = {
             [1] = {
-                ["Dungeon"] = tonumber(dungeonID),
+                -- Aqui o campo Dungeon fica vazio, sem id
                 ["Event"] = "DungeonAction",
                 ["Action"] = "Start"
             },
             [2] = "\12"
         }
     }
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
-    print("▶ Dungeon iniciada com ID: " .. dungeonID)
+    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(startArgs))
+    print("▶ Dungeon iniciada sem ID.")
 end
 
 t:AddToggle("ToggleAutoCastelo", {
@@ -165,29 +157,14 @@ t:AddToggle("ToggleAutoCastelo", {
     end
 })
 
-t:AddInput("DungeonIDInput", {
-    Title = "ID da Dungeon",
-    Placeholder = "Insira o ID da dungeon aqui",
-    Default = dungeonID,
-    Numeric = true,
-    Callback = function(value)
-        dungeonID = value
-        salvarConfig()
-        print("ID da Dungeon atualizado para: " .. dungeonID)
-    end
-})
-
 t:AddToggle("ToggleAutoDungeon", {
-    Title = "Auto Dungeon (Criar e Iniciar)",
-    Description = "Ativa ou desativa o Auto Dungeon que cria e inicia a dungeon automaticamente",
+    Title = "Auto Dungeon (Criar e iniciar)",
+    Description = "Ativa ou desativa a criação e início automático da dungeon",
     Default = false,
     Callback = function(state)
         ativarDungeon = state
         if ativarDungeon then
-            print("✅ Auto Dungeon ativado!")
-            criarDungeon()
-            task.wait(1) -- espera 1 segundo para garantir criação
-            iniciarDungeon()
+            criarEDarStartNaDungeon()
         else
             print("❌ Auto Dungeon desativado!")
         end
@@ -222,9 +199,7 @@ toggleButton.MouseButton1Click:Connect(function()
             print("🔁 Reativando entrada no castelo após reabrir o Hub")
         end
         if ativarDungeon then
-            criarDungeon()
-            task.wait(1)
-            iniciarDungeon()
+            criarEDarStartNaDungeon()
             print("🔁 Reativando criação e início da dungeon após reabrir o Hub")
         end
     end
