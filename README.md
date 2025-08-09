@@ -15,7 +15,6 @@ local andarEntrada = 10
 local andarSaida = 1
 local configFile = "allan_hub_castelo.json"
 
--- Ajuste aqui para o caminho correto dos mobs no seu jogo
 local mobsFolder = workspace:WaitForChild("Mobs")
 
 -- Função para salvar configuração
@@ -121,6 +120,9 @@ local function comprarTicket()
     }
     ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
     print("🎟 Ticket comprado para nova dungeon.")
+
+    -- Resetar estado para permitir nova criação
+    dungeonFinalizada = false
 end
 
 -- Função para verificar se ainda tem mobs vivos
@@ -145,7 +147,6 @@ RunService.Heartbeat:Connect(function()
             print("⚔️ Mobs vivos detectados!")
         else
             print("✅ Todos os mobs foram eliminados!")
-            -- Se a dungeon está ativa e não tem mais mobs, considerar finalizada
             if dungeonAtiva then
                 dungeonFinalizada = true
                 dungeonAtiva = false
@@ -156,7 +157,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- Monitorar andar atual para Auto Castelo (sair automaticamente)
+-- Monitorar andar atual para Auto Castelo
 task.spawn(function()
     while task.wait(1) do
         if ativarEvento then
@@ -175,14 +176,16 @@ task.spawn(function()
     end
 end)
 
--- Loop Auto Dungeon (criar, iniciar e aguardar fim)
+-- Loop Auto Dungeon corrigido
 task.spawn(function()
     while task.wait(5) do
         if ativarDungeon then
-            if not dungeonAtiva and not dungeonFinalizada then
+            if not dungeonAtiva and dungeonFinalizada then
+                task.wait(2)
+                criarEIniciarDungeon()
+            elseif not dungeonAtiva and not dungeonFinalizada then
                 criarEIniciarDungeon()
             end
-            -- Aguarda finalização pelo monitoramento de mobs
         else
             dungeonAtiva = false
             dungeonFinalizada = false
@@ -290,11 +293,4 @@ local hubVisivel = true
 toggleButton.MouseButton1Click:Connect(function()
     hubVisivel = not hubVisivel
     Window.Frame.Visible = hubVisivel
-    toggleButton.BackgroundColor3 = hubVisivel and Color3.fromRGB(100, 100, 255) or Color3.fromRGB(255, 100, 100)
-    toggleButton.Text = hubVisivel and "🔼" or "🔽"
-
-    if hubVisivel and ativarEvento then
-        entrarCastelo()
-        print("🔁 Reativando entrada no castelo após reabrir o Hub")
-    end
-end)
+    toggleButton.BackgroundColor3 = hubVisivel and Color3.fromRGB(100,
