@@ -1,9 +1,13 @@
 local ativarEvento = false
 local ativarDungeon = false
+local dungeonAtiva = false -- flag para controlar se dungeon está ativa
 local andarEntrada = 10
 local andarSaida = 1
 local currentFloor = 0
 local configFile = "allan_hub_castelo.json"
+
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Função para salvar configuração
 local function salvarConfig()
@@ -11,7 +15,7 @@ local function salvarConfig()
         entrada = andarEntrada,
         saida = andarSaida
     }
-    writefile(configFile, game:GetService("HttpService"):JSONEncode(data))
+    writefile(configFile, HttpService:JSONEncode(data))
     print("💾 Configuração salva!")
 end
 
@@ -19,7 +23,7 @@ end
 local function carregarConfig()
     if isfile(configFile) then
         local content = readfile(configFile)
-        local data = game:GetService("HttpService"):JSONDecode(content)
+        local data = HttpService:JSONDecode(content)
         andarEntrada = tonumber(data.entrada) or andarEntrada
         andarSaida = tonumber(data.saida) or andarSaida
         print("📂 Configuração carregada! Entrada: " .. andarEntrada .. " | Saída: " .. andarSaida)
@@ -30,7 +34,6 @@ end
 
 carregarConfig()
 
--- Carregar Fluent GUI
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local Window = Fluent:CreateWindow({
     Title = "Allan Hub",
@@ -93,7 +96,7 @@ local function entrarCastelo()
             [2] = "\12"
         }
     }
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
     print("Entrando no andar " .. andarEntrada)
 end
 
@@ -109,7 +112,7 @@ local function sairCastelo()
             [2] = "\12"
         }
     }
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
     print("Saindo no andar " .. andarSaida)
 end
 
@@ -123,7 +126,7 @@ local function criarEDarStartNaDungeon()
             [2] = "\12"
         }
     }
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(createArgs))
+    ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(createArgs))
     print("✔ Dungeon criada.")
 
     task.wait(1) -- espera 1 segundo antes de iniciar
@@ -131,15 +134,16 @@ local function criarEDarStartNaDungeon()
     local startArgs = {
         [1] = {
             [1] = {
-                -- Aqui o campo Dungeon fica vazio, sem id
                 ["Event"] = "DungeonAction",
                 ["Action"] = "Start"
             },
             [2] = "\12"
         }
     }
-    game:GetService("ReplicatedStorage").BridgeNet2.dataRemoteEvent:FireServer(unpack(startArgs))
+    ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(startArgs))
     print("▶ Dungeon iniciada sem ID.")
+
+    dungeonAtiva = true -- marca que dungeon está ativa
 end
 
 t:AddToggle("ToggleAutoCastelo", {
@@ -164,7 +168,7 @@ t:AddToggle("ToggleAutoDungeon", {
     Callback = function(state)
         ativarDungeon = state
         if ativarDungeon then
-            criarEDarStartNaDungeon()
+            print("✅ Auto Dungeon ativado!")
         else
             print("❌ Auto Dungeon desativado!")
         end
@@ -198,23 +202,34 @@ toggleButton.MouseButton1Click:Connect(function()
             entrarCastelo()
             print("🔁 Reativando entrada no castelo após reabrir o Hub")
         end
-        if ativarDungeon then
+        if ativarDungeon and not dungeonAtiva then
             criarEDarStartNaDungeon()
             print("🔁 Reativando criação e início da dungeon após reabrir o Hub")
         end
     end
 end)
 
+-- Loop que cria e inicia dungeon só se toggle ativado e dungeon não estiver ativa
+task.spawn(function()
+    while task.wait(5) do -- verifica a cada 5 segundos (pode ajustar)
+        if ativarDungeon and not dungeonAtiva then
+            criarEDarStartNaDungeon()
+        end
+    end
+end)
+
+-- Aqui você pode adicionar lógica para resetar dungeonAtiva quando a dungeon terminar,
+-- por exemplo, monitorando o andar atual ou algum evento do jogo.
+
+-- Exemplo simples para resetar dungeonAtiva ao sair da dungeon:
 task.spawn(function()
     while task.wait(1) do
-        if ativarEvento then
-            local floorValue = game.Players.LocalPlayer:FindFirstChild("CurrentFloor")
-            if floorValue and tonumber(floorValue.Value) ~= currentFloor then
-                currentFloor = tonumber(floorValue.Value)
-                print("Andar atual: " .. currentFloor)
-                if currentFloor == andarSaida then
-                    sairCastelo()
-                end
+        local floorValue = game.Players.LocalPlayer:FindFirstChild("CurrentFloor")
+        if floorValue then
+            local floor = tonumber(floorValue.Value)
+            if floor and floor == andarSaida then
+                dungeonAtiva = false -- reset ao sair no andar de saída
+                print("Dungeon finalizada ou saída detectada, dungeonAtiva resetada.")
             end
         end
     end
