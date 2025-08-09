@@ -14,8 +14,11 @@ local dungeonFinalizada = false
 local andarEntrada = 10
 local andarSaida = 1
 local configFile = "allan_hub_castelo.json"
-
-local mobsFolder = workspace:WaitForChild("Mobs")
+local mobsFolder = workspace:FindFirstChild("__Enemies") or workspace:FindFirstChild("Npcs")
+if not mobsFolder then
+    warn("❌ Pasta de inimigos não encontrada. Verifique se '__Enemies' ou 'Npcs' existe no Workspace.")
+    return
+end
 
 -- Função para salvar configuração
 local function salvarConfig()
