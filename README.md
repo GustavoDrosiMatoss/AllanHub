@@ -1,122 +1,80 @@
-local ativarEvento = false
-local ativarDungeon = false
-local dungeonAtiva = false -- flag para controlar se dungeon está ativa
-local andarEntrada = 10
-local andarSaida = 1
-local currentFloor = 0
-local configFile = "allan_hub_castelo.json"
-
-local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 
--- Função para salvar configuração
-local function salvarConfig()
-    local data = {
-        entrada = andarEntrada,
-        saida = andarSaida
-    }
-    writefile(configFile, HttpService:JSONEncode(data))
-    print("💾 Configuração salva!")
-end
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
--- Função para carregar configuração
-local function carregarConfig()
-    if isfile(configFile) then
-        local content = readfile(configFile)
-        local data = HttpService:JSONDecode(content)
-        andarEntrada = tonumber(data.entrada) or andarEntrada
-        andarSaida = tonumber(data.saida) or andarSaida
-        print("📂 Configuração carregada! Entrada: " .. andarEntrada .. " | Saída: " .. andarSaida)
-    else
-        salvarConfig()
+local ativarDungeon = false
+local dungeonAtiva = false
+local dungeonFinalizada = false
+
+local andarSaida = 1 -- Andar para sair e resetar dungeon
+
+-- Ajuste para onde estão os mobs
+local mobsFolder = workspace:WaitForChild("Mobs")
+
+-- Função para voar até o mob mais próximo
+local function getClosestMob()
+    local closestMob = nil
+    local closestDistance = math.huge
+
+    for _, mob in pairs(mobsFolder:GetChildren()) do
+        if mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+            local mobHRP = mob.HumanoidRootPart
+            local distance = (humanoidRootPart.Position - mobHRP.Position).Magnitude
+            if distance < closestDistance then
+                closestDistance = distance
+                closestMob = mob
+            end
+        end
     end
+
+    return closestMob
 end
 
-carregarConfig()
+local flying = false
+local function voarAteMob()
+    if flying then return end
+    flying = true
 
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local Window = Fluent:CreateWindow({
-    Title = "Allan Hub",
-    SubTitle = "By Allan",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 320),
-    Acrylic = true,
-    Theme = "dark",
-    MinimizeKey = Enum.KeyCode.End
-})
-
-local t = Window:AddTab({
-    Title = "Auto Castelo",
-    Icon = "home"
-})
-
-local andaresEntrada = {}
-for i = 10, 110, 10 do
-    table.insert(andaresEntrada, tostring(i))
-end
-
-local andaresSaida = {}
-for i = 1, 117 do
-    table.insert(andaresSaida, tostring(i))
-end
-
-t:AddDropdown("AndarEntrada", {
-    Title = "Selecionar Andar de Entrada",
-    Values = andaresEntrada,
-    Multi = false,
-    Default = tostring(andarEntrada),
-    Callback = function(value)
-        andarEntrada = tonumber(value)
-        salvarConfig()
-        print("Andar de entrada selecionado: " .. andarEntrada)
+    local mob = getClosestMob()
+    if not mob then
+        print("Nenhum mob encontrado!")
+        flying = false
+        return
     end
-})
 
-t:AddDropdown("AndarSaida", {
-    Title = "Selecionar Andar de Saída",
-    Values = andaresSaida,
-    Multi = false,
-    Default = tostring(andarSaida),
-    Callback = function(value)
-        andarSaida = tonumber(value)
-        salvarConfig()
-        print("Andar de saída selecionado: " .. andarSaida)
-    end
-})
+    local targetPos = mob.HumanoidRootPart.Position + Vector3.new(0, 5, 0) -- voa 5 studs acima do mob
 
-local function entrarCastelo()
-    local args = {
-        [1] = {
-            [1] = {
-                ["Check"] = true,
-                ["Floor"] = tostring(andarEntrada),
-                ["Event"] = "CastleAction",
-                ["Action"] = "Join"
-            },
-            [2] = "\12"
-        }
-    }
-    ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
-    print("Entrando no andar " .. andarEntrada)
+    local velocidade = 100
+
+    local connection
+    connection = RunService.Heartbeat:Connect(function(deltaTime)
+        local currentPos = humanoidRootPart.Position
+        local direction = (targetPos - currentPos)
+        local distance = direction.Magnitude
+
+        if distance < 1 then
+            connection:Disconnect()
+            flying = false
+            print("Chegou perto do mob!")
+            return
+        end
+
+        local moveVector = direction.Unit * velocidade * deltaTime
+        if moveVector.Magnitude > distance then
+            moveVector = direction
+        end
+
+        humanoidRootPart.CFrame = humanoidRootPart.CFrame + moveVector
+    end)
 end
 
-local function sairCastelo()
-    local args = {
-        [1] = {
-            [1] = {
-                ["Check"] = true,
-                ["Floor"] = tostring(andarSaida),
-                ["Event"] = "CastleAction",
-                ["Action"] = "LeaveDungeon"
-            },
-            [2] = "\12"
-        }
-    }
-    ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
-    print("Saindo no andar " .. andarSaida)
-end
-
-local function criarEDarStartNaDungeon()
+-- Função para criar e iniciar dungeon
+local function criarEIniciarDungeon()
     local createArgs = {
         [1] = {
             [1] = {
@@ -129,7 +87,7 @@ local function criarEDarStartNaDungeon()
     ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(createArgs))
     print("✔ Dungeon criada.")
 
-    task.wait(1) -- espera 1 segundo antes de iniciar
+    task.wait(1)
 
     local startArgs = {
         [1] = {
@@ -141,29 +99,81 @@ local function criarEDarStartNaDungeon()
         }
     }
     ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(startArgs))
-    print("▶ Dungeon iniciada sem ID.")
+    print("▶ Dungeon iniciada.")
 
-    dungeonAtiva = true -- marca que dungeon está ativa
+    dungeonAtiva = true
+    dungeonFinalizada = false
 end
 
-t:AddToggle("ToggleAutoCastelo", {
-    Title = "Auto Castelo",
-    Description = "Ativa ou desativa o Auto Castelo Infernal",
-    Default = false,
-    Callback = function(state)
-        ativarEvento = state
-        if ativarEvento then
-            print("✅ Auto Castelo ativado!")
-            entrarCastelo()
+-- Função para comprar ticket no final da dungeon
+local function comprarTicket()
+    local args = {
+        [1] = {
+            [1] = {
+                ["Type"] = "Gems",
+                ["Event"] = "DungeonAction",
+                ["Action"] = "BuyTicket"
+            },
+            [2] = "\12"
+        }
+    }
+    ReplicatedStorage.BridgeNet2.dataRemoteEvent:FireServer(unpack(args))
+    print("🎟 Ticket comprado para nova dungeon.")
+end
+
+-- Monitorar dungeon, voar até mobs e reiniciar dungeon após fim
+task.spawn(function()
+    while task.wait(5) do
+        if ativarDungeon then
+            if not dungeonAtiva then
+                criarEIniciarDungeon()
+                -- Espera voar até mob antes de continuar
+                repeat
+                    voarAteMob()
+                    wait(6) -- tempo pra voar e atacar, ajusta se quiser
+                until not flying
+            else
+                -- Monitorar se saiu da dungeon (exemplo pelo andar atual)
+                local floorValue = player:FindFirstChild("CurrentFloor")
+                if floorValue then
+                    local floor = tonumber(floorValue.Value)
+                    if floor == andarSaida then
+                        if not dungeonFinalizada then
+                            dungeonFinalizada = true
+                            dungeonAtiva = false
+                            print("Dungeon finalizada detectada!")
+                            comprarTicket()
+                        end
+                    end
+                end
+            end
         else
-            print("❌ Auto Castelo desativado!")
+            dungeonAtiva = false
+            dungeonFinalizada = false
         end
     end
+end)
+
+-- Toggle para ativar/desativar Auto Dungeon
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Window = Fluent:CreateWindow({
+    Title = "Allan Hub",
+    SubTitle = "By Allan",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 320),
+    Acrylic = true,
+    Theme = "dark",
+    MinimizeKey = Enum.KeyCode.End
+})
+
+local t = Window:AddTab({
+    Title = "Auto Dungeon",
+    Icon = "home"
 })
 
 t:AddToggle("ToggleAutoDungeon", {
-    Title = "Auto Dungeon (Criar e iniciar)",
-    Description = "Ativa ou desativa a criação e início automático da dungeon",
+    Title = "Auto Dungeon (Criar, Voar, Reiniciar)",
+    Description = "Ativa ou desativa o ciclo automático de dungeon",
     Default = false,
     Callback = function(state)
         ativarDungeon = state
@@ -174,63 +184,3 @@ t:AddToggle("ToggleAutoDungeon", {
         end
     end
 })
-
-local floatingGui = Instance.new("ScreenGui")
-floatingGui.Name = "AllanHubFloating"
-floatingGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-floatingGui.ResetOnSpawn = false
-
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 50, 0, 50)
-toggleButton.Position = UDim2.new(0, 20, 0.5, -25)
-toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-toggleButton.Text = "⚙"
-toggleButton.TextScaled = true
-toggleButton.Parent = floatingGui
-toggleButton.Active = true
-toggleButton.Draggable = true
-
-local hubVisivel = true
-toggleButton.MouseButton1Click:Connect(function()
-    hubVisivel = not hubVisivel
-    Window.Frame.Visible = hubVisivel
-    toggleButton.BackgroundColor3 = hubVisivel and Color3.fromRGB(100, 100, 255) or Color3.fromRGB(255, 100, 100)
-    toggleButton.Text = hubVisivel and "🔼" or "🔽"
-
-    if hubVisivel then
-        if ativarEvento then
-            entrarCastelo()
-            print("🔁 Reativando entrada no castelo após reabrir o Hub")
-        end
-        if ativarDungeon and not dungeonAtiva then
-            criarEDarStartNaDungeon()
-            print("🔁 Reativando criação e início da dungeon após reabrir o Hub")
-        end
-    end
-end)
-
--- Loop que cria e inicia dungeon só se toggle ativado e dungeon não estiver ativa
-task.spawn(function()
-    while task.wait(5) do -- verifica a cada 5 segundos (pode ajustar)
-        if ativarDungeon and not dungeonAtiva then
-            criarEDarStartNaDungeon()
-        end
-    end
-end)
-
--- Aqui você pode adicionar lógica para resetar dungeonAtiva quando a dungeon terminar,
--- por exemplo, monitorando o andar atual ou algum evento do jogo.
-
--- Exemplo simples para resetar dungeonAtiva ao sair da dungeon:
-task.spawn(function()
-    while task.wait(1) do
-        local floorValue = game.Players.LocalPlayer:FindFirstChild("CurrentFloor")
-        if floorValue then
-            local floor = tonumber(floorValue.Value)
-            if floor and floor == andarSaida then
-                dungeonAtiva = false -- reset ao sair no andar de saída
-                print("Dungeon finalizada ou saída detectada, dungeonAtiva resetada.")
-            end
-        end
-    end
-end)
