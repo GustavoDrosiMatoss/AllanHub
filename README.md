@@ -135,7 +135,7 @@ t:AddToggle("ToggleAutoCastelo", {
     end
 })
 
--- Botão flutuante para mostrar/esconder Hub
+-- Botão flutuante para mostrar/esconder Hub com ícone dinâmico
 local floatingGui = Instance.new("ScreenGui")
 floatingGui.Name = "AllanHubFloating"
 floatingGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -144,24 +144,29 @@ floatingGui.ResetOnSpawn = false
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
 toggleButton.Position = UDim2.new(0, 20, 0.5, -25)
-toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-toggleButton.Text = "⚙"
+toggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+toggleButton.Text = "🔼"
 toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Parent = floatingGui
 toggleButton.Active = true
 toggleButton.Draggable = true
+toggleButton.BorderSizePixel = 0
+toggleButton.AutoButtonColor = false
 
 local hubVisivel = true
 toggleButton.MouseButton1Click:Connect(function()
     hubVisivel = not hubVisivel
     Window.Frame.Visible = hubVisivel
+    toggleButton.Text = hubVisivel and "🔼" or "🔽"
+    toggleButton.BackgroundColor3 = hubVisivel and Color3.fromRGB(100, 100, 255) or Color3.fromRGB(255, 100, 100)
 end)
 
 -- Verifica andar atual e sai automaticamente
 task.spawn(function()
     while task.wait(1) do
         if ativarEvento then
-            -- Troque "CurrentFloor" pelo nome real do valor no jogo
             local floorValue = game.Players.LocalPlayer:FindFirstChild("CurrentFloor")
             if floorValue and tonumber(floorValue.Value) ~= currentFloor then
                 currentFloor = tonumber(floorValue.Value)
