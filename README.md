@@ -282,9 +282,11 @@ floatingGui.ResetOnSpawn = false
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
 toggleButton.Position = UDim2.new(0, 20, 0.5, -25)
-toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-toggleButton.Text = "⚙"
+toggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
+toggleButton.Text = "🔼"
 toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
 toggleButton.Parent = floatingGui
 toggleButton.Active = true
 toggleButton.Draggable = true
@@ -293,4 +295,6 @@ local hubVisivel = true
 toggleButton.MouseButton1Click:Connect(function()
     hubVisivel = not hubVisivel
     Window.Frame.Visible = hubVisivel
-    toggleButton.BackgroundColor3 = hubVisivel and Color3.fromRGB(100,
+    toggleButton.BackgroundColor3 = hubVisivel and Color3.fromRGB(100, 100, 255) or Color3.fromRGB(255, 100, 100)
+    toggleButton.Text = hubVisivel and "🔼" or "❌"
+end)
