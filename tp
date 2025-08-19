@@ -1,0 +1,133 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+local enemiesFolder = workspace:WaitForChild("__Main"):WaitForChild("__Enemies")
+
+local visitedPositions = {}
+local currentTarget = nil
+local stuckCounter = 0
+
+-- Função para verificar se uma posição já foi visitada recentemente
+local function isPositionVisited(position)
+    for _, visitedPos in pairs(visitedPositions) do
+        if (position - visitedPos).Magnitude < 10 then -- Se estiver muito próximo de uma posição visitada
+            return true
+        end
+    end
+    return false
+end
+
+-- Função para adicionar posição à lista de visitadas
+local function addVisitedPosition(position)
+    table.insert(visitedPositions, position)
+    -- Limita o tamanho da lista para não consumir muita memória
+    if #visitedPositions > 10 then
+        table.remove(visitedPositions, 1)
+    end
+end
+
+local function getClosestUnvisitedMob()
+    local closestMob = nil
+    local shortestDistance = math.huge
+    local allMobs = {}
+    local maxDistance = 500 -- Aumenta a distância máxima de busca
+    
+    -- Primeiro, coleta todos os mobs disponíveis dentro do alcance
+    for _, mobFolder in pairs(enemiesFolder:GetChildren()) do
+        if mobFolder and mobFolder.Parent then
+            local mob = mobFolder:FindFirstChild("HumanoidRootPart") or mobFolder:FindFirstChildWhichIsA("BasePart", true)
+            
+            if mob and mob:IsA("BasePart") and mob.Parent then
+                local dist = (hrp.Position - mob.Position).Magnitude
+                
+                -- Só considera mobs dentro do alcance máximo
+                if dist <= maxDistance then
+                    -- Verifica se tem Humanoid e se está vivo
+                    local humanoid = mobFolder:FindFirstChildOfClass("Humanoid")
+                    local isAlive = true
+                    
+                    if humanoid then
+                        isAlive = humanoid.Health > 0
+                    end
+                    
+                    if isAlive then
+                        table.insert(allMobs, {mob = mob, folder = mobFolder, distance = dist})
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Procura por mobs não visitados primeiro
+    for _, mobData in pairs(allMobs) do
+        local mob = mobData.mob
+        if not isPositionVisited(mob.Position) then
+            local dist = mobData.distance
+            if dist < shortestDistance then
+                shortestDistance = dist
+                closestMob = mob
+            end
+        end
+    end
+    
+    -- Se não encontrar mobs não visitados, limpa a lista e pega qualquer um
+    if not closestMob and #allMobs > 0 then
+        visitedPositions = {} -- Limpa as posições visitadas
+        for _, mobData in pairs(allMobs) do
+            local mob = mobData.mob
+            local dist = mobData.distance
+            if dist < shortestDistance then
+                shortestDistance = dist
+                closestMob = mob
+            end
+        end
+    end
+    
+    print("Mobs encontrados no alcance:", #allMobs, "| Distância do mais próximo:", math.floor(shortestDistance))
+    return closestMob
+end
+
+local function teleportToMobLoop()
+    while true do
+        local mob = getClosestUnvisitedMob()
+        
+        if mob and mob.Parent then
+            -- Verifica se é o mesmo alvo da vez anterior
+            if currentTarget and currentTarget == mob then
+                stuckCounter = stuckCounter + 1
+                if stuckCounter > 3 then
+                    print("Parece que estou preso no mesmo mob, marcando como visitado...")
+                    addVisitedPosition(mob.Position)
+                    stuckCounter = 0
+                    currentTarget = nil
+                    task.wait(1)
+                    continue
+                end
+            else
+                stuckCounter = 0
+                currentTarget = mob
+            end
+            
+            hrp.CFrame = mob.CFrame + Vector3.new(0, 5, 0)
+            print("Teletransportado para mob na posição:", math.floor(mob.Position.X), math.floor(mob.Position.Y), math.floor(mob.Position.Z))
+            
+            -- Após 2 segundos no mesmo mob, marca como visitado
+            task.wait(2)
+            addVisitedPosition(mob.Position)
+            
+        else
+            print("Nenhum mob encontrado! Aguardando...")
+            visitedPositions = {} -- Limpa a lista se não encontrar mobs
+            currentTarget = nil
+            stuckCounter = 0
+            task.wait(2)
+        end
+        
+        task.wait(0.1)
+    end
+end
+
+-- Ativar auto-teleport:
+teleportToMobLoop()
