@@ -1,0 +1,251 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+local enemiesFolder = workspace:WaitForChild("__Main"):WaitForChild("__Enemies")
+
+local visitedPositions = {}
+local currentTarget = nil
+local stuckCounter = 0
+local flyConnection = nil
+local currentTween = nil
+
+-- Configurações de voo
+local FLIGHT_SPEED = 50 -- Velocidade de voo
+local FLIGHT_HEIGHT = 5 -- Altura acima do mob
+
+-- Função para verificar se uma posição já foi visitada recentemente
+local function isPositionVisited(position)
+    for _, visitedPos in pairs(visitedPositions) do
+        if (position - visitedPos).Magnitude < 10 then
+            return true
+        end
+    end
+    return false
+end
+
+-- Função para adicionar posição à lista de visitadas
+local function addVisitedPosition(position)
+    table.insert(visitedPositions, position)
+    if #visitedPositions > 10 then
+        table.remove(visitedPositions, 1)
+    end
+end
+
+-- Função para ativar o voo
+local function enableFlight()
+    if flyConnection then return end
+    
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.PlatformStand = true
+    end
+    
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Parent = hrp
+    
+    flyConnection = bodyVelocity
+end
+
+-- Função para desativar o voo
+local function disableFlight()
+    if flyConnection then
+        flyConnection:Destroy()
+        flyConnection = nil
+    end
+    
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.PlatformStand = false
+    end
+end
+
+-- Função para voar até uma posição usando Tween
+local function flyToPosition(targetPosition)
+    enableFlight()
+    
+    -- Para o tween anterior se existir
+    if currentTween then
+        currentTween:Cancel()
+        currentTween = nil
+    end
+    
+    local targetCFrame = CFrame.new(targetPosition + Vector3.new(0, FLIGHT_HEIGHT, 0))
+    local distance = (hrp.Position - targetPosition).Magnitude
+    local duration = distance / FLIGHT_SPEED
+    
+    -- Cria o tween de movimento
+    local tweenInfo = TweenInfo.new(
+        duration,
+        Enum.EasingStyle.Linear,
+        Enum.EasingDirection.InOut,
+        0,
+        false,
+        0
+    )
+    
+    currentTween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
+    currentTween:Play()
+    
+    print("Voando para posição:", math.floor(targetPosition.X), math.floor(targetPosition.Y), math.floor(targetPosition.Z))
+    
+    return currentTween
+end
+
+local function getClosestUnvisitedMob()
+    local closestMob = nil
+    local shortestDistance = math.huge
+    local allMobs = {}
+    local maxDistance = 500
+    
+    for _, mobFolder in pairs(enemiesFolder:GetChildren()) do
+        if mobFolder and mobFolder.Parent then
+            local mob = mobFolder:FindFirstChild("HumanoidRootPart") or mobFolder:FindFirstChildWhichIsA("BasePart", true)
+            
+            if mob and mob:IsA("BasePart") and mob.Parent then
+                local dist = (hrp.Position - mob.Position).Magnitude
+                
+                if dist <= maxDistance then
+                    local humanoid = mobFolder:FindFirstChildOfClass("Humanoid")
+                    local isAlive = true
+                    
+                    if humanoid then
+                        isAlive = humanoid.Health > 0
+                    end
+                    
+                    if isAlive then
+                        table.insert(allMobs, {mob = mob, folder = mobFolder, distance = dist})
+                    end
+                end
+            end
+        end
+    end
+    
+    -- Procura por mobs não visitados primeiro
+    for _, mobData in pairs(allMobs) do
+        local mob = mobData.mob
+        if not isPositionVisited(mob.Position) then
+            local dist = mobData.distance
+            if dist < shortestDistance then
+                shortestDistance = dist
+                closestMob = mob
+            end
+        end
+    end
+    
+    -- Se não encontrar mobs não visitados, limpa a lista e pega qualquer um
+    if not closestMob and #allMobs > 0 then
+        visitedPositions = {}
+        for _, mobData in pairs(allMobs) do
+            local mob = mobData.mob
+            local dist = mobData.distance
+            if dist < shortestDistance then
+                shortestDistance = dist
+                closestMob = mob
+            end
+        end
+    end
+    
+    print("Mobs encontrados no alcance:", #allMobs, "| Distância do mais próximo:", math.floor(shortestDistance))
+    return closestMob
+end
+
+local function flyToMobLoop()
+    enableFlight()
+    
+    while true do
+        local mob = getClosestUnvisitedMob()
+        
+        if mob and mob.Parent then
+            -- Verifica se é o mesmo alvo da vez anterior
+            if currentTarget and currentTarget == mob then
+                stuckCounter = stuckCounter + 1
+                if stuckCounter > 3 then
+                    print("Parece que estou preso no mesmo mob, marcando como visitado...")
+                    addVisitedPosition(mob.Position)
+                    stuckCounter = 0
+                    currentTarget = nil
+                    task.wait(1)
+                    continue
+                end
+            else
+                stuckCounter = 0
+                currentTarget = mob
+            end
+            
+            -- Voa até o mob
+            local flyTween = flyToPosition(mob.Position)
+            
+            -- Espera o voo completar ou um tempo máximo
+            local startTime = tick()
+            local maxWaitTime = 10 -- Máximo 10 segundos para chegar ao mob
+            
+            repeat
+                task.wait(0.1)
+                local distance = (hrp.Position - mob.Position).Magnitude
+                
+                -- Se chegou perto o suficiente, para o tween
+                if distance < 15 then
+                    break
+                end
+                
+                -- Se o mob morreu ou sumiu, para o tween
+                if not mob.Parent then
+                    break
+                end
+                
+            until (tick() - startTime) > maxWaitTime or flyTween.PlaybackState == Enum.PlaybackState.Completed
+            
+            -- Para o tween se ainda estiver rodando
+            if currentTween then
+                currentTween:Cancel()
+                currentTween = nil
+            end
+            
+            print("Chegou próximo ao mob!")
+            
+            -- Aguarda um pouco no mob antes de marcar como visitado
+            task.wait(2)
+            addVisitedPosition(mob.Position)
+            
+        else
+            print("Nenhum mob encontrado! Aguardando...")
+            visitedPositions = {}
+            currentTarget = nil
+            stuckCounter = 0
+            task.wait(2)
+        end
+        
+        task.wait(0.5)
+    end
+end
+
+-- Função para parar o script
+local function stopScript()
+    if currentTween then
+        currentTween:Cancel()
+        currentTween = nil
+    end
+    disableFlight()
+    print("Script de voo automático parado!")
+end
+
+-- Ativar auto-voo
+print("Iniciando voo automático para mobs...")
+print("Para parar o script, execute: stopScript()")
+
+-- Torna a função de parar disponível globalmente
+_G.stopAutoFly = stopScript
+
+-- Proteção contra erros
+local success, error = pcall(flyToMobLoop)
+if not success then
+    print("Erro no script:", error)
+    stopScript()
+end
