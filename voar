@@ -15,7 +15,7 @@ local flyConnection = nil
 local currentTween = nil
 
 -- Configurações de voo
-local FLIGHT_SPEED = 50 -- Velocidade de voo
+local FLIGHT_SPEED = 500 -- Velocidade de voo
 local FLIGHT_HEIGHT = 5 -- Altura acima do mob
 
 -- Função para verificar se uma posição já foi visitada recentemente
@@ -102,7 +102,7 @@ local function getClosestUnvisitedMob()
     local closestMob = nil
     local shortestDistance = math.huge
     local allMobs = {}
-    local maxDistance = 500
+    local maxDistance = 50000
     
     for _, mobFolder in pairs(enemiesFolder:GetChildren()) do
         if mobFolder and mobFolder.Parent then
