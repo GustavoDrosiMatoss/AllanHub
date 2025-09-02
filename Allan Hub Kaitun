@@ -13,6 +13,26 @@ getgenv().Config = {
         ["BuyAccessories"] = true,
         ["BuyLegendarySword"] = false -- tạm thời bị gỡ cho shitter bị bại não.
     }
+
+
+--[[
+Compatibilidade: alguns jogos disparam eventos remotos que, se não forem tratados,
+encherão a fila do cliente. O bloco abaixo apenas consome os eventos de
+ReplicatedStorage.FishReplicated.FishingRemote caso existam, para evitar spam de erros.
+]]
+do
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local ok, fishFolder = pcall(function() return ReplicatedStorage:FindFirstChild("FishReplicated") end)
+    if ok and fishFolder then
+        local fishRemote = fishFolder:FindFirstChild("FishingRemote")
+        if fishRemote and fishRemote.OnClientEvent then
+            fishRemote.OnClientEvent:Connect(function(...)
+                -- Consumimos o evento sem fazer nada.
+            end)
+        end
+    end
+end
+
 }
 
 -- Variables
@@ -20,6 +40,7 @@ getgenv().Config = {
 local DCSettings = Config["https://discord.gg/VKsDR8cb"]
 local FSSettings = Config["Autofarm"]
 
+--[[ Teleporta o jogador para o destino informado (Vector3/CFrame/Part). ]]
 function TP(P1)
     Distance = (P1.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
     if Distance < 250 then
@@ -38,6 +59,7 @@ function TP(P1)
     ):Play()
 end
 
+--[[ Variante de teleporte para ajustar rota/altura ao destino. ]]
 function TP2(P1)
 	Distance = (P1.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
 	if Distance < 1000 then
@@ -126,7 +148,7 @@ local UICorner_10 = Instance.new("UICorner")
 
 local data = {
     ["username"] = 'Allan Hub kaitun', -- haha NO.
-    ['content'] = DCSettings["Content"]
+    ['content'] = DCSettings["Content"],
     ["embeds"] = {
         {
             ["title"] = '**Allan HUb Kaitun status conta**', -- LMAO WTF
@@ -171,13 +193,13 @@ local data = {
                         "\nGun : "..game:GetService("Players").LocalPlayer.Data.Stats.Gun:WaitForChild("Level").Value .. 
                         "\nDevil Fruit : "..game:GetService("Players").LocalPlayer.Data.Stats["Demon Fruit"]:WaitForChild("Level").Value).."```",
                     ["inline"] = true
-                },
+                }
             },
             ["footer"] = {
-                ["Allan HUb Kaitun"] = "Script còn mới, đôi khi vài thứ thiếu. Mong bạn thông cảm.".."\nTime".." : "..os.date("%c").." ("..os.date("%X")..")",
-            },
+                ["Allan HUb Kaitun"] = "Script còn mới, đôi khi vài thứ thiếu. Mong bạn thông cảm.".."\nTime".." : "..os.date("%c").." ("..os.date("%X")..")"
+            }
         }
-    },
+    }
 }
 
 --Properties:
@@ -753,6 +775,7 @@ spawn(function()
     end
 end)
 
+--[[ Resgata um código de recompensa no jogo. ]]
 function UseCode(Text) -- theres no button.
     game:GetService("ReplicatedStorage").Remotes.Redeem:InvokeServer(Text)
 end
@@ -899,10 +922,12 @@ elseif placeId == 7449423635 then
     Game.Text = "Third Sea"
 	ThreeWorld = true
 end
+--[[ Executa uma ação de clique/ataque automático no alvo atual. ]]
 function Click()
 	game:GetService'VirtualUser':CaptureController()
 	game:GetService'VirtualUser':Button1Down(Vector2.new(1280, 672))
 end
+--[[ Verifica e inicia a missão adequada ao nível do jogador. ]]
 function CheckQuest()
 	local MyLevel = game.Players.LocalPlayer.Data.Level.Value
 	if OldWorld then
@@ -1467,6 +1492,7 @@ function CheckQuest()
 
 if OldWorld then
 CheckQuest()
+--[[ Equipa a arma/ ferramenta com o nome fornecido. ]]
 function EquipWeapon(ToolSe)
 	if game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe) then
 		local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe)
@@ -1697,6 +1723,7 @@ end)
 		end)
 	end)
 
+--[[ Lê o nível do jogador e retorna faixas para o farm. ]]
 function CheckLevel()
     local Lv = game:GetService("Players").LocalPlayer.Data.Level.Value
     if OldWorld then
@@ -2608,6 +2635,7 @@ function Click()
     game:GetService'VirtualUser':Button1Down(Vector2.new(1280, 672))
 end
 
+--[[ Ativa o Haki (buso) caso esteja disponível. ]]
 function AutoHaki()
     if not game.Players.LocalPlayer.Character:FindFirstChild("HasBuso") then
         local args = {
@@ -2821,6 +2849,7 @@ PlayerName = {}
 for i,v in pairs(game.Players:GetChildren()) do  
 	table.insert(PlayerName ,v.Name)
 end
+--[[ Retorna true se o valor for nil ou inválido. ]]
 function isnil(thing)
 	return (thing == nil)
 end
