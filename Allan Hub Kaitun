@@ -1,4 +1,3 @@
-
 _G.Team = "Pirates" -- "Marines"
 _G.FPSBoost = false -- really fucked up the client but the good side is fps go wroom.
 
@@ -125,11 +124,9 @@ local LogoName = Instance.new("TextLabel")
 local ToggleUIButton = Instance.new("TextButton")
 local UICorner_10 = Instance.new("UICorner")
 
--- Webhook
-
 local data = {
     ["username"] = 'Allan Hub kaitun', -- haha NO.
-    ['content'] = DCSettings["Content"],
+    ['content'] = DCSettings["Content"]
     ["embeds"] = {
         {
             ["title"] = '**Allan HUb Kaitun status conta**', -- LMAO WTF
