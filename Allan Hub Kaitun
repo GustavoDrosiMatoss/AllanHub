@@ -1,3 +1,5 @@
+-- Proteções automáticas adicionadas: pcall inicial e timeouts no WaitForChild
+local __ok,__err = pcall(function()
 _G.Team = "Pirates" -- "Marines"
 _G.FPSBoost = false -- really fucked up the client but the good side is fps go wroom.
 
@@ -187,11 +189,11 @@ local data = {
                 },
                 {
                     ["name"] = "Status",
-                    ["value"] = "```sml\n"..tostring("Melee : "..game:GetService("Players").LocalPlayer.Data.Stats.Melee:WaitForChild("Level").Value .. 
-                        "\nDefense : "..game:GetService("Players").LocalPlayer.Data.Stats.Defense:WaitForChild("Level").Value .. 
-                        "\nSword : "..game:GetService("Players").LocalPlayer.Data.Stats.Sword:WaitForChild("Level").Value.. 
-                        "\nGun : "..game:GetService("Players").LocalPlayer.Data.Stats.Gun:WaitForChild("Level").Value .. 
-                        "\nDevil Fruit : "..game:GetService("Players").LocalPlayer.Data.Stats["Demon Fruit"]:WaitForChild("Level").Value).."```",
+                    ["value"] = "```sml\n"..tostring("Melee : "..game:GetService("Players").LocalPlayer.Data.Stats.Melee:WaitForChild("Level", 5).Value .. 
+                        "\nDefense : "..game:GetService("Players").LocalPlayer.Data.Stats.Defense:WaitForChild("Level", 5).Value .. 
+                        "\nSword : "..game:GetService("Players").LocalPlayer.Data.Stats.Sword:WaitForChild("Level", 5).Value.. 
+                        "\nGun : "..game:GetService("Players").LocalPlayer.Data.Stats.Gun:WaitForChild("Level", 5).Value .. 
+                        "\nDevil Fruit : "..game:GetService("Players").LocalPlayer.Data.Stats["Demon Fruit"]:WaitForChild("Level", 5).Value).."```",
                     ["inline"] = true
                 }
             },
@@ -204,7 +206,7 @@ local data = {
 
 --Properties:
 
-Drayhhhubkaitun.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+Drayhhhubkaitun.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui", 5)
 Drayhhhubkaitun.Name = "Drayhhhubkaitun"
 Drayhhhubkaitun.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -3000,3 +3002,5 @@ while task.wait() do
 					end
 				end
 end
+end)
+if not __ok then warn("[AllanHubKaitun] erro ao iniciar script:", __err) end
