@@ -1,4 +1,4 @@
---[[
+mi--[[
 
     Kaitun ou Cuttay, uma frase de um script Roblox que faz autofarm totalmente em Blox Fruits (jogo)
     "Eh! Essa boceta usa HACK? Ele só joga há (1) semana e já é tão rico?"
@@ -552,4 +552,393 @@ UICorner_6.Parent = Main
 Game.Name = "Game"
 Game.Parent = Frame
 Game.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-Game.BackgroundTransparency = 1.0
+Game.BackgroundTransparency = 1
+Game.BorderSizePixel = 0
+Game.Position = UDim2.new(0.255566239, 0, 0.8730703, 0)
+Game.Size = UDim2.new(0, 200, 0, 27)
+Game.Font = Enum.Font.Gotham
+Game.Text = "Checking.."
+Game.TextColor3 = Color3.fromRGB(255, 255, 255)
+Game.TextSize = 23.000
+Game.TextWrapped = true
+Game.TextXAlignment = Enum.TextXAlignment.Left
+
+CreatorName.Name = "CreatorName"
+CreatorName.Parent = Frame
+CreatorName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+CreatorName.BackgroundTransparency = 1.000
+CreatorName.BorderSizePixel = 0
+CreatorName.Position = UDim2.new(0.255566239, 0, 0.902229786, 0)
+CreatorName.Size = UDim2.new(0, 200, 0, 27)
+CreatorName.Font = Enum.Font.Gotham
+CreatorName.Text = "Gamer Robot Inc"
+CreatorName.TextColor3 = Color3.fromRGB(255, 255, 255)
+CreatorName.TextSize = 15.000
+CreatorName.TextTransparency = 0.350
+CreatorName.TextWrapped = true
+CreatorName.TextXAlignment = Enum.TextXAlignment.Left
+
+Logo.Name = "Logo"
+Logo.Parent = Frame
+Logo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Logo.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Logo.Position = UDim2.new(0.0199410655, 0, 0.0274442546, 0)
+Logo.Size = UDim2.new(0, 78, 0, 78)
+Logo.Image = "http://www.roblox.com/asset/?id=13450463175"
+
+LogoName.Name = "Drayhh hub Kaitun"
+LogoName.Parent = Logo
+LogoName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+LogoName.BackgroundTransparency = 1.000
+LogoName.BorderSizePixel = 0
+LogoName.Position = UDim2.new(1.17929673, 0, 0.0880808681, 0)
+LogoName.Size = UDim2.new(0, 124, 0, 70)
+LogoName.Font = Enum.Font.GothamBold
+LogoName.Text = "Drayhh Hub Kaitun"
+LogoName.TextColor3 = Color3.fromRGB(255, 255, 255)
+LogoName.TextSize = 23.000
+LogoName.TextWrapped = true
+LogoName.TextXAlignment = Enum.TextXAlignment.Left
+
+ToggleUIButton.Name = "ToggleUIButton"
+ToggleUIButton.Parent = KaitunBinhHubGUI
+ToggleUIButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleUIButton.Position = UDim2.new(0.159199998, 0, 0.25920248, 0)
+ToggleUIButton.Size = UDim2.new(0, 70, 0, 70)
+ToggleUIButton.Font = Enum.Font.IndieFlower
+ToggleUIButton.Text = "open"
+ToggleUIButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleUIButton.TextSize = 41.000
+ToggleUIButton.TextWrapped = true
+ToggleUIButton.Visible = true
+
+UICorner_10.Parent = ToggleUIButton
+
+_G.loopMemayDi = true
+
+local updateStatus = coroutine.create(function() -- ngu qua ma. huuh
+    while _G.loopMemayDi do
+        Gun.Text = "Gun : "..game.Players.LocalPlayer.Data.Stats.Gun.Level.Value
+        Fruit.Text = "Fruit : "..game.Players.LocalPlayer.Data.Stats["Demon Fruit"].Level.Value
+        Melee.Text = "Melee : "..game.Players.LocalPlayer.Data.Stats.Melee.Level.Value
+        Sword.Text = "Sword : "..game.Players.LocalPlayer.Data.Stats.Sword.Level.Value
+        Defense.Text = "Defense : "..game.Players.LocalPlayer.Data.Stats.Defense.Level.Value
+        Beli.Text = "Beli : "..game.Players.LocalPlayer.Data.Beli.Value
+        Fragments.Text = "Fragments : "..game.Players.LocalPlayer.Data.Fragments.Value
+        Level.Text = "Level : "..game.Players.LocalPlayer.Data.Level.Value
+
+                local scripttime=game.Workspace.DistributedGameTime
+                local seconds = scripttime%60
+                local minutes = math.floor(scripttime/60%60)
+                local hours = math.floor(scripttime/3600)
+                local tempo = string.format("%.0f:%.0f:%.0f", hours ,minutes, seconds)
+                ClientUptime.Text = "Client Uptime : "..tempo
+        wait(1)
+    end
+end)
+
+coroutine.resume(updateStatus)
+
+local toggleState = true
+
+ToggleUIButton.MouseButton1Click:Connect(function()
+    toggleState = not toggleState -- Toggling the state
+    if toggleState then
+        ToggleUIButton.Text = "close"
+        game:GetService("Players").LocalPlayer.PlayerGui.KaitunBinhHubGUI.Frame.Visible = true
+    else
+        ToggleUIButton.Text = "open"
+        game:GetService("Players").LocalPlayer.PlayerGui.KaitunBinhHubGUI.Frame.Visible = false
+    end
+end)
+
+local function drag()
+        local script = Instance.new('LocalScript', ToggleUIButton)
+        local UIS = game:GetService('UserInputService')
+        local frame = script.Parent
+        local dragToggle = nil
+        local dragSpeed = 0.25
+        local dragStart = nil
+        local startPos = nil
+
+        local function updateInput(input)
+                local delta = input.Position - dragStart
+                local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+                game:GetService('TweenService'):Create(frame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+        end
+
+        frame.InputBegan:Connect(function(input)
+                if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+                        dragToggle = true
+                        dragStart = input.Position
+                        startPos = frame.Position
+                        input.Changed:Connect(function()
+                                if input.UserInputState == Enum.UserInputState.End then
+                                        dragToggle = false
+                                end
+                        end)
+                end
+        end)
+
+        UIS.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                        if dragToggle then
+                                updateInput(input)
+                        end
+                end
+        end)
+
+end
+coroutine.wrap(drag)()
+
+local function drag2()
+        local script = Instance.new('LocalScript', Frame)
+        local UIS = game:GetService('UserInputService')
+        local frame = script.Parent
+        local dragToggle = nil
+        local dragSpeed = 0.25
+        local dragStart = nil
+        local startPos = nil
+
+        local function updateInput(input)
+                local delta = input.Position - dragStart
+                local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+                game:GetService('TweenService'):Create(frame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+        end
+
+        frame.InputBegan:Connect(function(input)
+                if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+                        dragToggle = true
+                        dragStart = input.Position
+                        startPos = frame.Position
+                        input.Changed:Connect(function()
+                                if input.UserInputState == Enum.UserInputState.End then
+                                        dragToggle = false
+                                end
+                        end)
+                end
+        end)
+
+        UIS.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                        if dragToggle then
+                                updateInput(input)
+                        end
+                end
+        end)
+
+end
+coroutine.wrap(drag2)()
+
+print("Dang load")
+
+-- Main code
+
+spawn(function()
+    while task.wait() do
+        if game.Players.LocalPlayer.Team == nil then
+            pcall(function()
+                if _G.Team == "Pirates" then
+                    game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton.Size = UDim2.new(10000,1000,10000,1000)
+                    game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton.Position = UDim2.new(-4,0,-5,0)
+                    wait(.5)
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(605,394,0,true,game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton,0)
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(605,394,0,false,game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton,0)
+                elseif _G.Team == "Marines" then
+                    game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Marines.Frame.ViewportFrame.TextButton.Size = UDim2.new(10000,1000,10000,1000)
+                    game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Marines.Frame.ViewportFrame.TextButton.Position = UDim2.new(-4,0,-5,0)
+                    wait(.5)
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(605,394,0,true,game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton,0)
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(605,394,0,false,game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton,0)
+                else
+                    game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton.Size = UDim2.new(10000,1000,10000,1000)
+                    game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton.Position = UDim2.new(-4,0,-5,0)
+                    wait(.5)
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(605,394,0,true,game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton,0)
+                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(605,394,0,false,game:GetService("Players").LocalPlayer.PlayerGui.Main.ChooseTeam.Container.Pirates.Frame.ViewportFrame.TextButton,0)
+                end
+            end)
+        end
+    end
+end)
+
+function UseCode(Text) -- theres no button.
+    game:GetService("ReplicatedStorage").Remotes.Redeem:InvokeServer(Text)
+end
+
+UseCode("Enyu_is_Pro")
+UseCode("Magicbus")
+UseCode("JCWK")
+UseCode("Starcodeheo")
+UseCode("Bluxxy")
+UseCode("fudd10_v2")
+UseCode("3BVISITS")
+UseCode("UPD16")
+UseCode("FUDD10")
+UseCode("UPD15")
+UseCode("Sub2OfficialNoobie")
+UseCode("SUB2GAMERROBOT_EXP1")
+UseCode("THEGREATACE")
+UseCode("SUB2NOOBMASTER123")
+UseCode("Axiore")
+UseCode("TantaiGaming")
+UseCode("STRAWHATMAINE") 
+
+warn("redeemed")
+
+    vu = true
+    AutoKaitan = vu
+    _G.AutoFarm = vu
+
+        if _G.AutoFarm and SelectToolWeapon == "" then
+                print("select weapon first")
+        else
+                Auto_Farm = vu
+                SelectMonster = ""
+                if vu == false then
+                        wait(1)
+                        TP(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame)
+    end
+end
+
+    spawn(function()
+        while wait(.5) do
+            if AutoKaitan and game.Players.LocalPlayer:FindFirstChild("WeaponAssetCache") then
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Combat") or game.Players.LocalPlayer.Character:FindFirstChild("Combat") then
+                    local args = {
+                        [1] = "BuyBlackLeg"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end   
+                if game.Players.LocalPlayer.Character:FindFirstChild("Superhuman") or game.Players.LocalPlayer.Backpack:FindFirstChild("Superhuman") and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    SelectToolWeapon = "Superhuman"
+                end  
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Black Leg") and game.Players.LocalPlayer.Backpack:FindFirstChild("Black Leg").Level.Value <= 299 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    SelectToolWeapon = "Black Leg"
+                end
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Electro") and game.Players.LocalPlayer.Backpack:FindFirstChild("Electro").Level.Value <= 299 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    SelectToolWeapon = "Electro"
+                end
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Fishman Karate") and game.Players.LocalPlayer.Backpack:FindFirstChild("Fishman Karate").Level.Value <= 299 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    SelectToolWeapon = "Fishman Karate"
+                end
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Dragon Claw") and game.Players.LocalPlayer.Backpack:FindFirstChild("Dragon Claw").Level.Value <= 299 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    SelectToolWeapon = "Dragon Claw"
+                end
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Black Leg") and game.Players.LocalPlayer.Backpack:FindFirstChild("Black Leg").Level.Value >= 300 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    local args = {
+                        [1] = "BuyElectro"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end
+                if game.Players.LocalPlayer.Character:FindFirstChild("Black Leg") and game.Players.LocalPlayer.Character:FindFirstChild("Black Leg").Level.Value >= 300 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    local args = {
+                        [1] = "BuyElectro"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end
+
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Electro") and game.Players.LocalPlayer.Backpack:FindFirstChild("Electro").Level.Value >= 300 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    local args = {
+                        [1] = "BuyFishmanKarate"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end
+                if game.Players.LocalPlayer.Character:FindFirstChild("Electro") and game.Players.LocalPlayer.Character:FindFirstChild("Electro").Level.Value >= 300 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    local args = {
+                        [1] = "BuyFishmanKarate"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Fishman Karate") and game.Players.LocalPlayer.Backpack:FindFirstChild("Fishman Karate").Level.Value >= 300 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    local args = {
+                        [1] = "BlackbeardReward",
+                        [2] = "DragonClaw",
+                        [3] = "2"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end
+                if game.Players.LocalPlayer.Character:FindFirstChild("Fishman Karate") and game.Players.LocalPlayer.Character:FindFirstChild("Fishman Karate").Level.Value >= 300 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    local args = {
+                        [1] = "BlackbeardReward",
+                        [2] = "DragonClaw",
+                        [3] = "2"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end
+                if game.Players.LocalPlayer.Backpack:FindFirstChild("Dragon Claw") and game.Players.LocalPlayer.Backpack:FindFirstChild("Dragon Claw").Level.Value >= 300 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    local args = {
+                        [1] = "BuySuperhuman"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end
+                if game.Players.LocalPlayer.Character:FindFirstChild("Dragon Claw") and game.Players.LocalPlayer.Character:FindFirstChild("Dragon Claw").Level.Value >= 300 and game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+                    local args = {
+                        [1] = "BuySuperhuman"
+                    }
+                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(args))
+                end 
+            end
+        end
+    end)
+
+_G.AutoStats = true
+
+spawn(function() -- only for sea 1, co the se lam cho sea 2 va 3 vi tui thay great tree ma nang moi melee la chet.
+        while wait() do
+                if _G.AutoStats then
+                        if game:GetService("Players").LocalPlayer.Data.Stats.Melee.Level.Value < 2400 then
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Melee")
+                        else
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AddPoint","Defense")                        
+                        end
+                end
+        end
+end)
+
+local placeId = game.PlaceId
+Magnet = true
+if placeId == 2753915549 then
+    Game.Text = "First Sea"
+        OldWorld = true
+elseif placeId == 4442272183 then
+    Game.Text = "Second Sea"
+        NewWorld = true
+elseif placeId == 7449423635 then
+    Game.Text = "Third Sea"
+        ThreeWorld = true
+end
+function Click()
+        game:GetService'VirtualUser':CaptureController()
+        game:GetService'VirtualUser':Button1Down(Vector2.new(1280, 672))
+end
+function CheckQuest()
+        local MyLevel = game.Players.LocalPlayer.Data.Level.Value
+        if OldWorld then
+                if MyLevel == 1 or MyLevel <= 9 then 
+                        Ms = "Bandit [Lv. 5]"
+                        NaemQuest = "BanditQuest1"
+                        LevelQuest = 1
+                        NameMon = "Bandit"
+                        CFrameQuest = CFrame.new(1061.66699, 16.5166187, 1544.52905, -0.942978859, -3.33851502e-09, 0.332852632, 7.04340497e-09, 1, 2.99841325e-08, -0.332852632, 3.06188177e-08, -0.942978859)
+                        CFrameMon = CFrame.new(1199.31287, 52.2717781, 1536.91516, -0.929782331, 6.60215846e-08, -0.368109822, 3.9077392e-08, 1, 8.06501603e-08, 0.368109822, 6.06023249e-08, -0.929782331)
+                elseif MyLevel == 10 or MyLevel <= 14 then 
+                        Ms = "Monkey [Lv. 14]"
+                        NaemQuest = "JungleQuest"
+                        LevelQuest = 1
+                        NameMon = "Monkey"
+                        CFrameQuest = CFrame.new(-1604.12012, 36.8521118, 154.23732, 0.0648873374, -4.70858913e-06, -0.997892559, 1.41431883e-07, 1, -4.70933674e-06, 0.997892559, 1.64442184e-07, 0.0648873374)
+                        CFrameMon = CFrame.new(-1772.4093017578, 60.860641479492, 54.872589111328)
+                elseif MyLevel == 15 or MyLevel <= 29 then 
+                        Ms = "Gorilla [Lv. 20]"
+                        NaemQuest = "JungleQuest"
+                        LevelQuest = 2
+                        NameMon = "Gorilla"
+                        CFrameQuest = CFrame.new(-1604.12012, 36.8521118, 154.23732, 0.0648873374, -4.70858913e-06, -0.997892559, 1.41431883e-07, 1, -4.70933674e-06, 0.997892559, 1.64442184e-07, 0.0648873374)
+                        CFrameMon = CFrame.new(-1223.52808, 6.27936459, -502.292664, 0.310949147, -5.66602516e-08, 0.950426519, -3.37275488e-08, 1, 7.06501808e-08, -0.950426519, -5.40241736e-08, 0.310949147)
+                elseif MyLevel == 30 or MyLevel <= 39 then 
+                        Ms = "Pirate [Lv. 35]"
+                        NaemQuest = "BuggyQuest1"
+        
