@@ -1,56 +1,78 @@
+-- 🦴 Checagem de Bones
 spawn(function()
-    while wait(1) do
+    while task.wait(1) do
         if CommF then
-            pcall(function()
-                StatusBone:SetDesc("You Have: " .. tostring(CommF:InvokeServer("Bones", "Check")) .. " Bones")
+            local ok, result = pcall(function()
+                return CommF:InvokeServer("Bones", "Check")
             end)
+
+            if ok then
+                if StatusBone then
+                    StatusBone:SetDesc("You Have: " .. tostring(result) .. " Bones")
+                else
+                    warn("⚠️ StatusBone não definido")
+                end
+            else
+                warn("⚠️ Erro ao invocar CommF:", result)
+            end
+        else
+            warn("⚠️ CommF não está definido")
         end
     end
 end)
 
-Input = Server:AddInput("Input", {
-     Title = "Input Job Id",
-     Default = "",
-     Placeholder = "Paste Job Id",
-     Numeric = false,
-     Finished = false,
-     Callback = function(Value)
-         getgenv().Job = Value
-     end
-})    
+-- 📝 Input de JobId
+if Server then
+    Input = Server:AddInput("Input", {
+        Title = "Input Job Id",
+        Default = "",
+        Placeholder = "Paste Job Id",
+        Numeric = false,
+        Finished = false,
+        Callback = function(Value)
+            getgenv().Job = Value
+            print("✅ JobId configurado:", Value)
+        end
+    })    
 
-Toggle = Server:AddToggle("Toggle", {Title = "Spam Join", Default = false })
-Toggle:OnChanged(function(Value)
-    getgenv().Join = Value
-end)
+    -- 🔀 Toggle de Spam Join
+    Toggle = Server:AddToggle("Toggle", {Title = "Spam Join", Default = false })
+    Toggle:OnChanged(function(Value)
+        getgenv().Join = Value
+        print("✅ Spam Join:", Value and "Ativado" or "Desativado")
+    end)
+else
+    warn("⚠️ Server não está definido")
+end
 
+-- 🚀 Loop de Teleporte
 spawn(function()
     local lastTeleportTime = 0
     local teleportCooldown = 1    
+
     while task.wait() do
         if getgenv().Join and tick() - lastTeleportTime >= teleportCooldown then
             lastTeleportTime = tick()
-            pcall(function()
-                game:GetService("TeleportService"):TeleportToPlaceInstance(game.placeId, getgenv().Job, game.Players.LocalPlayer)
+
+            local ok, err = pcall(function()
+                if getgenv().Job and getgenv().Job ~= "" then
+                    game:GetService("TeleportService"):TeleportToPlaceInstance(
+                        game.placeId,
+                        getgenv().Job,
+                        game.Players.LocalPlayer
+                    )
+                    print("✅ Tentando teleporte para JobId:", getgenv().Job)
+                else
+                    warn("⚠️ Nenhum JobId configurado")
+                end
             end)
+
+            if not ok then
+                warn("⚠️ Erro no teleporte:", err)
+            end
         end
     end
 end)
-
-local lastTeleportTime = 0
-local teleportCooldown = 5
-
-Server:AddButton({
-    Title = "Join Server",
-    Callback = function()
-        if tick() - lastTeleportTime >= teleportCooldown then
-            lastTeleportTime = tick()
-            pcall(function()
-                game:GetService("TeleportService"):TeleportToPlaceInstance(game.placeId, getgenv().Job, game.Players.LocalPlayer)
-            end)
-        end
-    end
-})
 
 local lastCopyTime = 0
 local copyCooldown = 2
