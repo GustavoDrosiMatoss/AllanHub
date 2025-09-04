@@ -4,7 +4,6 @@
     "Eh! Essa boceta usa HACK? Ele só joga há (1) semana e já é tão rico?"
     Drayhh hub kaitun (Drayhh-hub)
   
-
 ]]
 
 _G.Team = "Pirates" -- "Marines"
@@ -18,76 +17,66 @@ getgenv().Config = {
         ["Time"] = 60 -- Seconds
     },
     ["Autofarm"] = {
-        ["BuySwords"] = true, -- xong
+        ["BuySwords"] = true,
         ["BuyAccessories"] = true,
-        ["BuyLegendarySword"] = false -- tạm thời bị gỡ cho shitter bị bại não.
+        ["BuyLegendarySword"] = false
     }
 }
 
--- Variables
-
+-- ==========================================================
+-- ✅ Correção: DCSettings agora pega a tabela correta
+-- ==========================================================
 local DCSettings = getgenv().Config["Discord"]
-local FSSettings = Config["Autofarm"]
+local FSSettings = getgenv().Config["Autofarm"]
 
-function TP(P1)
-    Distance = (P1.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-    if Distance < 250 then
-        Speed = 600
-    elseif Distance < 500 then
-        Speed = 500
-    elseif Distance < 1000 then
-        Speed = 400
-    elseif Distance >= 1000 then
-        Speed = 250
-    end
-    game:GetService("TweenService"):Create(
-        game.Players.LocalPlayer.Character.HumanoidRootPart,
-        TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-        {CFrame = P1}
-    ):Play()
-end
-
-function TP2(P1)
-	Distance = (P1.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-	if Distance < 1000 then
-		Speed = 500
-	elseif Distance >= 1000 then
-		Speed = 350
-	end
-    game:GetService("TweenService"):Create(
-        game.Players.LocalPlayer.Character.HumanoidRootPart,
-        TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-        {CFrame = P1}
-    ):Play()
-    Clip = true
-    wait(Distance/Speed)
-    Clip = false
-end
-
-function TP(P)
-	Distance = (P.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
-	if Distance < 10 then
-		Speed = 1000
-	elseif Distance < 170 then
-		game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = P
-		Speed = 350
-	elseif Distance < 1000 then
-		Speed = 350
-	elseif Distance >= 1000 then
-		Speed = 250
-	end
-	game:GetService("TweenService"):Create(
-		game.Players.LocalPlayer.Character.HumanoidRootPart,
-		TweenInfo.new(Distance/Speed, Enum.EasingStyle.Linear),
-		{CFrame = P}
-	):Play()
-end
-
--- gui // line 662 to continue
-
-SelectToolWeapon = "Combat"
-
--- Instances:
+-- Webhook (com proteção extra caso falte alguma chave)
+local data = {
+    ["username"] = 'Drayhh Hub kaitun',
+    ["content"] = DCSettings and DCSettings["Content"] or "@everyone",
+    ["embeds"] = {
+        {
+            ["title"] = '**Drayhh hub status conta**',
+            ["color"] = 5539744, -- color id		
+            ["type"] = "rich",
+            ["fields"] =  {
+                {
+                    ["name"] = "User Name",
+                    ["value"] = "||"..tostring(game.Players.LocalPlayer.Name).."||",
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "Level",
+                    ["value"] = tostring(game:GetService("Players").LocalPlayer.Data:FindFirstChild("Level") and game:GetService("Players").LocalPlayer.Data.Level.Value or "N/A"),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "Fragments",
+                    ["value"] = tostring(game:GetService("Players").LocalPlayer.Data:FindFirstChild("Fragments") and game:GetService("Players").LocalPlayer.Data.Fragments.Value or "N/A"),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "Bounty/Honor",
+                    ["value"] = tostring(game:GetService("Players").LocalPlayer.leaderstats:FindFirstChild("Bounty/Honor") and game:GetService("Players").LocalPlayer.leaderstats["Bounty/Honor"].Value or "N/A"),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "Beli",
+                    ["value"] = tostring(game:GetService("Players").LocalPlayer.Data:FindFirstChild("Beli") and game:GetService("Players").LocalPlayer.Data.Beli.Value or "N/A"),
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = "Race",
+                    ["value"] = tostring(game:GetService("Players").LocalPlayer.Data:FindFirstChild("Race") and game:GetService("Players").LocalPlayer.Data.Race.Value or "N/A"),
+                    ["inline"] = true
+                },
+            },
+            ["footer"] = {
+                ["text"] = "Script Kaitun Hub - "..os.date("%c"),
+            },
+        }
+    },
+}
+nstances:
 
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
