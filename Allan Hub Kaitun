@@ -1,6 +1,3 @@
--- Allan Hub Configurado + Fluent GUI (FIX Loader)
--- Evita erro "linha 1" usando URL raw + fallback + stub.
-
 local function loadFluent()
     -- Tenta a URL RAW (conteúdo puro em Lua)
     local ok, lib = pcall(function()
