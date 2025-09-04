@@ -1,3 +1,32 @@
+
+-- === SAFE HELPERS ADDED BY FIXER ===
+local function safeFind(root, names)
+    local cur = root
+    for i = 1, #names do
+        if not cur or type(cur.FindFirstChild) ~= "function" then return nil end
+        cur = cur:FindFirstChild(names[i])
+    end
+    return cur
+end
+
+local function safeValue(obj, fallback)
+    if obj and obj.Value ~= nil then return obj.Value end
+    return fallback
+end
+
+local function safeWait(parent, childName, timeout)
+    timeout = timeout or 5
+    if parent and type(parent.WaitForChild) == "function" then
+        local ok = parent:WaitForChild(childName, timeout)
+        if not ok then
+            warn("[safeWait] '".. tostring(childName) .."' not found under ".. tostring(parent))
+        end
+        return ok
+    end
+    return nil
+end
+-- === END SAFE HELPERS ===
+
 --[[
 
     Kaitun ou Cuttay, uma frase de um script Roblox que faz autofarm totalmente em Blox Fruits (jogo)
@@ -165,11 +194,11 @@ local data = {
                 },
                 {
                     ["name"] = "Status",
-                    ["value"] = "```sml\n"..tostring("Melee : "..game:GetService("Players").LocalPlayer.Data.Stats.Melee:WaitForChild("Level").Value .. 
-                        "\nDefense : "..game:GetService("Players").LocalPlayer.Data.Stats.Defense:WaitForChild("Level").Value .. 
-                        "\nSword : "..game:GetService("Players").LocalPlayer.Data.Stats.Sword:WaitForChild("Level").Value.. 
-                        "\nGun : "..game:GetService("Players").LocalPlayer.Data.Stats.Gun:WaitForChild("Level").Value .. 
-                        "\nDevil Fruit : "..game:GetService("Players").LocalPlayer.Data.Stats["Demon Fruit"]:WaitForChild("Level").Value).."```",
+                    ["value"] = "```sml\n"..tostring("Melee : "..game:GetService("Players").LocalPlayer.Data.Stats.Melee:WaitForChild("Level", 5).Value .. 
+                        "\nDefense : "..game:GetService("Players").LocalPlayer.Data.Stats.Defense:WaitForChild("Level", 5).Value .. 
+                        "\nSword : "..game:GetService("Players").LocalPlayer.Data.Stats.Sword:WaitForChild("Level", 5).Value.. 
+                        "\nGun : "..game:GetService("Players").LocalPlayer.Data.Stats.Gun:WaitForChild("Level", 5).Value .. 
+                        "\nDevil Fruit : "..game:GetService("Players").LocalPlayer.Data.Stats["Demon Fruit"]:WaitForChild("Level", 5).Value).."```",
                     ["inline"] = true
                 },
             },
@@ -182,7 +211,7 @@ local data = {
 
 --Properties:
 
-Drayhhhubkaitun.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+Drayhhhubkaitun.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui", 5)
 Drayhhhubkaitun.Name = "Drayhhhubkaitun"
 Drayhhhubkaitun.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -607,14 +636,78 @@ _G.loopMemayDi = true
 
 local updateStatus = coroutine.create(function() -- ngu qua ma. huuh
     while _G.loopMemayDi do
-        Gun.Text = "Gun : "..game.Players.LocalPlayer.Data.Stats.Gun.Level.Value
-        Fruit.Text = "Fruit : "..game.Players.LocalPlayer.Data.Stats["Demon Fruit"].Level.Value
-        Melee.Text = "Melee : "..game.Players.LocalPlayer.Data.Stats.Melee.Level.Value
-        Sword.Text = "Sword : "..game.Players.LocalPlayer.Data.Stats.Sword.Level.Value
-        Defense.Text = "Defense : "..game.Players.LocalPlayer.Data.Stats.Defense.Level.Value
-        Beli.Text = "Beli : "..game.Players.LocalPlayer.Data.Beli.Value
-        Fragments.Text = "Fragments : "..game.Players.LocalPlayer.Data.Fragments.Value
-        Level.Text = "Level : "..game.Players.LocalPlayer.Data.Level.Value
+        do -- safe block for Gun
+    local _player = game.Players.LocalPlayer
+    local _valObj = safeFind(_player, {"Data","Stats","Gun","Level"}})
+    if _valObj then
+        Gun.Text = "Gun : " .. safeValue(_valObj, "N/A")
+    else
+        warn("[fix] Gun path not found")
+    end
+end
+        do -- safe block for Fruit
+    local _player = game.Players.LocalPlayer
+    local _valObj = safeFind(_player, {"Data","Stats","Demon Fruit","Level"}})
+    if _valObj then
+        Fruit.Text = "Fruit : " .. safeValue(_valObj, "N/A")
+    else
+        warn("[fix] Fruit path not found")
+    end
+end
+        do -- safe block for Melee
+    local _player = game.Players.LocalPlayer
+    local _valObj = safeFind(_player, {"Data","Stats","Melee","Level"}})
+    if _valObj then
+        Melee.Text = "Melee : " .. safeValue(_valObj, "N/A")
+    else
+        warn("[fix] Melee path not found")
+    end
+end
+        do -- safe block for Sword
+    local _player = game.Players.LocalPlayer
+    local _valObj = safeFind(_player, {"Data","Stats","Sword","Level"}})
+    if _valObj then
+        Sword.Text = "Sword : " .. safeValue(_valObj, "N/A")
+    else
+        warn("[fix] Sword path not found")
+    end
+end
+        do -- safe block for Defense
+    local _player = game.Players.LocalPlayer
+    local _valObj = safeFind(_player, {"Data","Stats","Defense","Level"}})
+    if _valObj then
+        Defense.Text = "Defense : " .. safeValue(_valObj, "N/A")
+    else
+        warn("[fix] Defense path not found")
+    end
+end
+        do -- safe block for Beli
+    local _player = game.Players.LocalPlayer
+    local _valObj = safeFind(_player, {"Data","Beli"}})
+    if _valObj then
+        Beli.Text = "Beli : " .. safeValue(_valObj, "N/A")
+    else
+        warn("[fix] Beli path not found")
+    end
+end
+        do -- safe block for Fragments
+    local _player = game.Players.LocalPlayer
+    local _valObj = safeFind(_player, {"Data","Fragments"}})
+    if _valObj then
+        Fragments.Text = "Fragments : " .. safeValue(_valObj, "N/A")
+    else
+        warn("[fix] Fragments path not found")
+    end
+end
+        do -- safe block for Level
+    local _player = game.Players.LocalPlayer
+    local _valObj = safeFind(_player, {"Data","Level"}})
+    if _valObj then
+        Level.Text = "Level : " .. safeValue(_valObj, "N/A")
+    else
+        warn("[fix] Level path not found")
+    end
+end
 
 		local scripttime=game.Workspace.DistributedGameTime
 		local seconds = scripttime%60
