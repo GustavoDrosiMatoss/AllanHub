@@ -1,13 +1,33 @@
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
-local VirtualUser = game:GetService("VirtualUser")
-local RunService = game:GetService("RunService")
-local Player = Players.LocalPlayer
+local function loadFluent()
+    local ok, lib = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
+    end)
+    if ok and lib then return lib end
+    -- Tentativa secundária (release download)
+    ok, lib = pcall(function()
+        return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+    end)
+    if ok and lib then return lib end
+    warn("Falha ao carregar Fluent UI. Usando stub.")
+    -- Stub básico para não quebrar o script se a GUI falhar
+    local stub = {
+        CreateWindow = function()
+            local w = {}
+            function w:AddTab(_) 
+                local t = {}
+                function t:AddToggle(_, _) end
+                function t:AddButton(_) end
+                return t
+            end
+            return w
+        end,
+        Notify = function() end,
+        Options = {}
+    }
+    return stub
+end
 
-local Remotes = ReplicatedStorage:WaitForChild("Remotes")
-local CommF = Remotes:WaitForChild("CommF_")
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local Fluent = loadFluent()
 local Window = Fluent:CreateWindow({
     Title = "Allan Hub",
     SubTitle = "By Allan",
@@ -25,27 +45,33 @@ local Tabs = {
 }
 
 local Options = Fluent.Options
+
+-- ==== Services & Shortcuts ====
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local VirtualUser = game:GetService("VirtualUser")
+local RunService = game:GetService("RunService")
+local Player = Players.LocalPlayer
+
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local CommF = Remotes:WaitForChild("CommF_")
+
 -- ==== Utils ====
 local function Notify(title, content, duration)
-    Fluent:Notify({
-        Title = title or "Allan Hub",
-        Content = content or "",
-        Duration = duration or 4
-    })
+    if Fluent and Fluent.Notify then
+        Fluent:Notify({ Title = title or "Allan Hub", Content = content or "", Duration = duration or 4 })
+    else
+        warn("[Notify] "..(title or "").." - "..(content or ""))
+    end
 end
 
 local function IsAlive(plr)
     plr = plr or Player
     local c = plr.Character
-    return c and c:FindFirstChild("Humanoid") and c:FindFirstChild("Humanoid").Health > 0 and c:FindFirstChild("HumanoidRootPart")
+    return c and c:FindFirstChild("Humanoid") and c.Humanoid.Health > 0 and c:FindFirstChild("HumanoidRootPart")
 end
 
-local function Distance(a, b)
-    if not a or not b then return math.huge end
-    return (a.Position - b.Position).Magnitude
-end
-
--- Teleporte rápido usando TweenService
 local function fastpos(targetCFrame)
     if not IsAlive() then return end
     local hrp = Player.Character.HumanoidRootPart
@@ -56,13 +82,11 @@ local function fastpos(targetCFrame)
     tween.Completed:Wait()
 end
 
--- Clique básico (segura ataque)
 local function Click()
     VirtualUser:CaptureController()
     VirtualUser:Button1Down(Vector2.new(1280, 672))
 end
 
--- Auto Haki (Buso) simples
 local function AutoHaki()
     pcall(function()
         if not Player.Character:FindFirstChild("HasBuso") then
@@ -71,7 +95,6 @@ local function AutoHaki()
     end)
 end
 
--- Equipa Tool (arma/melee/sword)
 local function EquipWeapon(name)
     pcall(function()
         local char = Player.Character
@@ -79,17 +102,13 @@ local function EquipWeapon(name)
         if not char or not bp then return end
         if char:FindFirstChild(name) then return end
         local tool = bp:FindFirstChild(name)
-        if tool then
-            char.Humanoid:EquipTool(tool)
-        end
+        if tool then char.Humanoid:EquipTool(tool) end
     end)
 end
 
--- ==== Quest Selector (CheckQuest) ====
--- Retorna: QuestName, LevelQuest, MobName, QuestNPC_Position (CFrame), Mob_Spot (CFrame)
+-- ==== CheckQuest (resumo estável) ====
 local function CheckQuest()
     local lvl = Player.Data.Level.Value
-    -- Mundo 1
     if game.PlaceId == 2753915549 then
         if lvl < 10 then
             return "BanditQuest1", 1, "Bandit",
@@ -112,14 +131,11 @@ local function CheckQuest()
                 CFrame.new(-1140, 5, 3835),
                 CFrame.new(-1182, 15, 4370)
         elseif lvl < 700 then
-            -- Encurtado até o 700, mantém spots genéricos estáveis
             return "FountainQuest", (lvl < 650) and 1 or 2, (lvl < 650) and "Galley Pirate" or "Galley Captain",
                 CFrame.new(5244, 38, 4073),
                 CFrame.new(5630, 39, 4896)
         end
-    end
-    -- Mundo 2
-    if game.PlaceId == 4442272183 then
+    elseif game.PlaceId == 4442272183 then
         if lvl < 850 then
             return "Area1Quest", 1, "Raider",
                 CFrame.new(-426, 72, 1838),
@@ -133,9 +149,7 @@ local function CheckQuest()
                 CFrame.new(2286, 15, 676),
                 CFrame.new(976, 122, 1267)
         end
-    end
-    -- Mundo 3
-    if game.PlaceId == 7449423635 then
+    elseif game.PlaceId == 7449423635 then
         if lvl < 1750 then
             return "MarineTreeIsland", 1, "Marine Commodore",
                 CFrame.new(2170, 29, -6738),
@@ -146,22 +160,21 @@ local function CheckQuest()
                 CFrame.new(-402, 73, 5839)
         end
     end
-    -- Fallback
     return "BanditQuest1", 1, "Bandit", CFrame.new(1060, 16, 1548), CFrame.new(1145, 16, 1610)
 end
 
--- ==== World Hop ====
+-- ==== World Change ====
 local function CheckWorldChange()
     local lvl = Player.Data.Level.Value
     if lvl >= 700 and game.PlaceId == 2753915549 then
-        local r = CommF:InvokeServer("TravelDressrosa") -- -> Second Sea
+        local r = CommF:InvokeServer("TravelDressrosa")
         if r == nil or r == false then
-            Notify("Troca de Mundo", "Fale com o NPC do Coliseu/Impel para ir ao Second Sea.", 6)
+            warn("Ir ao NPC do Coliseu/Impel para liberar Second Sea.")
         end
     elseif lvl >= 1500 and game.PlaceId == 4442272183 then
-        local r = CommF:InvokeServer("TravelZou") -- -> Third Sea
+        local r = CommF:InvokeServer("TravelZou")
         if r == nil or r == false then
-            Notify("Troca de Mundo", "Complete os requisitos (rip_indra quest) para ir ao Third Sea.", 6)
+            warn("Complete os requisitos do Third Sea (rip_indra quest).")
         end
     end
 end
@@ -195,7 +208,6 @@ end
 local function AutoStats()
     local points = Player.Data.Points.Value
     if points <= 0 then return end
-    -- Prioriza Melee até 2400, depois Defense
     if Player.Data.Melee.Value < 2400 then
         CommF:InvokeServer("AddPoint","Melee",points)
     else
@@ -203,7 +215,7 @@ local function AutoStats()
     end
 end
 
--- ==== Farm Core ====
+-- ==== Core Toggles ====
 local Toggles = {
     AutoFarm = false,
     AutoWorld = true,
@@ -212,7 +224,7 @@ local Toggles = {
     AutoHaki = true
 }
 
--- Loop principal do Farm
+-- ==== Auto Farm Loop ====
 task.spawn(function()
     while task.wait(0.3) do
         pcall(function()
@@ -224,27 +236,25 @@ task.spawn(function()
             if Toggles.AutoFarm and IsAlive() then
                 local qName, qLvl, mob, qPos, mPos = CheckQuest()
 
-                -- Ir até o NPC e iniciar a quest
                 if qPos then fastpos(qPos) end
-                CommF:InvokeServer("AbandonQuest") -- Evita conflito
+                CommF:InvokeServer("AbandonQuest")
                 task.wait(0.2)
                 CommF:InvokeServer("StartQuest", qName, qLvl)
 
-                -- Caçar o mob
                 if mPos then fastpos(mPos) end
 
-                -- Procura o mob pela Workspace
-                local ws = workspace.Enemies
+                local ws = workspace:FindFirstChild("Enemies")
                 local target = nil
-                for _, v in ipairs(ws:GetChildren()) do
-                    if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and string.find(v.Name, mob) and v.Humanoid.Health > 0 then
-                        target = v
-                        break
+                if ws then
+                    for _, v in ipairs(ws:GetChildren()) do
+                        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and string.find(v.Name, mob) and v.Humanoid.Health > 0 then
+                            target = v
+                            break
+                        end
                     end
                 end
 
                 if target then
-                    -- Aproxima e bate
                     while target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 and Toggles.AutoFarm do
                         if not IsAlive() then break end
                         fastpos(target.HumanoidRootPart.CFrame * CFrame.new(0, 6, 7))
@@ -252,7 +262,6 @@ task.spawn(function()
                         task.wait(0.1)
                     end
                 else
-                    -- Sem mob encontrado, aguarda respawn
                     task.wait(0.8)
                 end
             end
@@ -260,7 +269,7 @@ task.spawn(function()
     end
 end)
 
--- ==== GUI: Farm ====
+-- ==== GUI ====
 Tabs.Farm:AddToggle("AutoFarm", {Title = "Auto Farm Level", Default = false, Callback = function(v)
     Toggles.AutoFarm = v
     Notify("Auto Farm", v and "Ativado" or "Desativado")
@@ -270,18 +279,15 @@ Tabs.Farm:AddToggle("AutoWorld", {Title = "Troca Automática de Mundos", Default
     Toggles.AutoWorld = v
 end})
 
--- ==== GUI: Fighting Styles ====
 Tabs.Styles:AddToggle("AutoStyles", {Title = "Evoluir Fighting Styles até God Human", Default = true, Callback = function(v)
     Toggles.AutoStyles = v
     if v then Notify("Fighting Styles", "Auto evolução ativada") end
 end})
 
--- ==== GUI: Stats ====
 Tabs.Stats:AddToggle("AutoStats", {Title = "Auto Distribuir Pontos (Melee > Defense)", Default = true, Callback = function(v)
     Toggles.AutoStats = v
 end})
 
--- ==== GUI: Config ====
 Tabs.Config:AddToggle("AutoHaki", {Title = "Auto Haki (Buso)", Default = true, Callback = function(v)
     Toggles.AutoHaki = v
 end})
@@ -291,4 +297,8 @@ Tabs.Config:AddButton({ Title = "Reset Quest", Description = "Abandona quest atu
     Notify("Quest", "Abandonada.")
 end})
 
-Notify("Allan Hub", "Carregado com sucesso! Bom farm :)", 6)
+if Fluent and Fluent.Notify then
+    Notify("Allan Hub", "Carregado com sucesso! Bom farm :)", 6)
+else
+    warn("Fluent UI não carregou; interface básica stub em uso.")
+end
