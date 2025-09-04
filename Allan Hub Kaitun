@@ -1,6 +1,40 @@
+-- Allan Hub Configurado + Fluent GUI (FIX Loader)
+-- Evita erro "linha 1" usando URL raw + fallback + stub.
+
 local function loadFluent()
+    -- Tenta a URL RAW (conteúdo puro em Lua)
     local ok, lib = pcall(function()
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
+    end)
+    if ok and lib then return lib end
+
+    -- Fallback para releases/latest
+    ok, lib = pcall(function()
+        return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+    end)
+    if ok and lib then return lib end
+
+    -- Stub para não quebrar se não carregar
+    warn("Fluent UI não pôde ser carregado. Usando stub básico.")
+    local stub = {}
+    function stub:CreateWindow()
+        local w = {}
+        function w:AddTab(_) 
+            return {
+                AddToggle = function() end,
+                AddButton = function() end,
+                AddDropdown = function() end,
+                AddSlider = function() end
+            }
+        end
+        return w
+    end
+    function stub:Notify(_) end
+    stub.Options = {}
+    return stub
+end
+
+local Fluent = loadFluent()
 local Window = Fluent:CreateWindow({
     Title = "Allan Hub",
     SubTitle = "By Allan",
@@ -16,6 +50,7 @@ local Tabs = {
     Stats = Window:AddTab({ Title = "Stats", Icon = "bar-chart-3" }),
     Config = Window:AddTab({ Title = "Config", Icon = "settings" })
 }
+-- Fim do header Fluent
 
 
 if not game:IsLoaded() then
