@@ -638,7 +638,7 @@ local updateStatus = coroutine.create(function() -- ngu qua ma. huuh
     while _G.loopMemayDi do
         do -- safe block for Gun
     local _player = game.Players.LocalPlayer
-    local _valObj = safeFind(_player, {"Data","Stats","Gun","Level"}})
+    local _valObj = safeFind(_player, {"Data","Stats","Gun","Level"})
     if _valObj then
         Gun.Text = "Gun : " .. safeValue(_valObj, "N/A")
     else
@@ -647,7 +647,7 @@ local updateStatus = coroutine.create(function() -- ngu qua ma. huuh
 end
         do -- safe block for Fruit
     local _player = game.Players.LocalPlayer
-    local _valObj = safeFind(_player, {"Data","Stats","Demon Fruit","Level"}})
+    local _valObj = safeFind(_player, {"Data","Stats","Demon Fruit","Level"})
     if _valObj then
         Fruit.Text = "Fruit : " .. safeValue(_valObj, "N/A")
     else
@@ -656,7 +656,7 @@ end
 end
         do -- safe block for Melee
     local _player = game.Players.LocalPlayer
-    local _valObj = safeFind(_player, {"Data","Stats","Melee","Level"}})
+    local _valObj = safeFind(_player, {"Data","Stats","Melee","Level"})
     if _valObj then
         Melee.Text = "Melee : " .. safeValue(_valObj, "N/A")
     else
@@ -665,7 +665,7 @@ end
 end
         do -- safe block for Sword
     local _player = game.Players.LocalPlayer
-    local _valObj = safeFind(_player, {"Data","Stats","Sword","Level"}})
+    local _valObj = safeFind(_player, {"Data","Stats","Sword","Level"})
     if _valObj then
         Sword.Text = "Sword : " .. safeValue(_valObj, "N/A")
     else
@@ -674,7 +674,7 @@ end
 end
         do -- safe block for Defense
     local _player = game.Players.LocalPlayer
-    local _valObj = safeFind(_player, {"Data","Stats","Defense","Level"}})
+    local _valObj = safeFind(_player, {"Data","Stats","Defense","Level"})
     if _valObj then
         Defense.Text = "Defense : " .. safeValue(_valObj, "N/A")
     else
@@ -683,7 +683,7 @@ end
 end
         do -- safe block for Beli
     local _player = game.Players.LocalPlayer
-    local _valObj = safeFind(_player, {"Data","Beli"}})
+    local _valObj = safeFind(_player, {"Data","Beli"})
     if _valObj then
         Beli.Text = "Beli : " .. safeValue(_valObj, "N/A")
     else
@@ -692,7 +692,7 @@ end
 end
         do -- safe block for Fragments
     local _player = game.Players.LocalPlayer
-    local _valObj = safeFind(_player, {"Data","Fragments"}})
+    local _valObj = safeFind(_player, {"Data","Fragments"})
     if _valObj then
         Fragments.Text = "Fragments : " .. safeValue(_valObj, "N/A")
     else
@@ -701,7 +701,7 @@ end
 end
         do -- safe block for Level
     local _player = game.Players.LocalPlayer
-    local _valObj = safeFind(_player, {"Data","Level"}})
+    local _valObj = safeFind(_player, {"Data","Level"})
     if _valObj then
         Level.Text = "Level : " .. safeValue(_valObj, "N/A")
     else
