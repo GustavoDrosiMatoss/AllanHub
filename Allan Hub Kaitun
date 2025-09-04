@@ -154,7 +154,7 @@ function CheckQuest()
             NameQuest = "SkyQuest"
             NameMon = "Sky Bandit"
             CFrameQuest = CFrame.new(-4839.53027, 716.368591, -2619.44165, 0.866007268, 0, 0.500031412, 0, 1, 0, -0.500031412, 0, 0.866007268)
-            CFrameMon = CFrame.new(-4944.96924, 277.915009, -2784.90601, 0.992550731, -0, -0.121831827, 0, 1, -0, 0.121831827, 0, 0.992550731)
+            CFrameMon = CFrame.new(-4953.20703125, 295.74420166015625, -2899.22900390625)
         elseif MyLevel >= 175 and MyLevel <= 189 then
             Mon = "Dark Master"
             LevelQuest = 2
@@ -8463,67 +8463,6 @@ spawn(function()
                     -- Se não achou inimigo, volta para o spawn dos mobs
                     fastpos(CFrameMon)
                 end
-            end
-        end
-    end
-end)
--- >>> FIM FIX <<<
-
-
--- >>> FIX: AutoFarm com FAILSAFE para não travar no NPC <<<
-local lastMove = tick()
-
-spawn(function()
-    while task.wait(0.5) do
-        if getgenv().AutoFarm and getgenv().FarmMode == "Farm Level" then
-            local player = game.Players.LocalPlayer
-            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-            if not root then continue end
-
-            -- Atualiza dados da missão/mobs
-            pcall(function() CheckQuest() end)
-
-            local gui = player.PlayerGui:FindFirstChild("Main")
-            local questFrame = gui and gui:FindFirstChild("Quest")
-
-            -- Se não tiver quest, pega de novo
-            if questFrame and not questFrame.Visible then
-                pcall(function()
-                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
-                end)
-                task.wait(0.8)
-
-                if CFrameMon then
-                    fastpos(CFrameMon)
-                    lastMove = tick()
-                end
-            else
-                -- Procura inimigos
-                local target = nil
-                for _, mob in pairs(workspace.Enemies:GetChildren()) do
-                    if mob.Name == NameMon and mob:FindFirstChild("HumanoidRootPart") 
-                        and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                        target = mob
-                        break
-                    end
-                end
-
-                if target then
-                    topos(target.HumanoidRootPart.CFrame * CFrame.new(0, 15, 0))
-                    EquipWeapon(getgenv().SelectWeapon or "Combat")
-                    game:GetService("VirtualUser"):CaptureController()
-                    game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
-                    lastMove = tick()
-                elseif CFrameMon then
-                    topos(CFrameMon)
-                    lastMove = tick()
-                end
-            end
-
-            -- FAILSAFE: se ficar mais de 10s parado, força teleporte para os mobs
-            if tick() - lastMove > 10 and CFrameMon then
-                fastpos(CFrameMon)
-                lastMove = tick()
             end
         end
     end
