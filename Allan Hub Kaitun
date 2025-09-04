@@ -3,28 +3,20 @@ local function loadFluent()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
     end)
     if ok and lib then return lib end
-    -- Tentativa secundária (release download)
     ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
     end)
     if ok and lib then return lib end
-    warn("Falha ao carregar Fluent UI. Usando stub.")
-    -- Stub básico para não quebrar o script se a GUI falhar
-    local stub = {
+    warn("Falha ao carregar Fluent UI.")
+    return {
         CreateWindow = function()
             local w = {}
-            function w:AddTab(_) 
-                local t = {}
-                function t:AddToggle(_, _) end
-                function t:AddButton(_) end
-                return t
-            end
+            function w:AddTab(_) return {AddToggle=function()end,AddButton=function()end} end
             return w
         end,
         Notify = function() end,
         Options = {}
     }
-    return stub
 end
 
 local Fluent = loadFluent()
@@ -46,14 +38,12 @@ local Tabs = {
 
 local Options = Fluent.Options
 
--- ==== Services & Shortcuts ====
+-- ==== Services ====
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local VirtualUser = game:GetService("VirtualUser")
-local RunService = game:GetService("RunService")
 local Player = Players.LocalPlayer
-
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local CommF = Remotes:WaitForChild("CommF_")
 
@@ -61,8 +51,6 @@ local CommF = Remotes:WaitForChild("CommF_")
 local function Notify(title, content, duration)
     if Fluent and Fluent.Notify then
         Fluent:Notify({ Title = title or "Allan Hub", Content = content or "", Duration = duration or 4 })
-    else
-        warn("[Notify] "..(title or "").." - "..(content or ""))
     end
 end
 
@@ -106,123 +94,66 @@ local function EquipWeapon(name)
     end)
 end
 
--- ==== CheckQuest (resumo estável) ====
+-- ==== CheckQuest ====
 local function CheckQuest()
     local lvl = Player.Data.Level.Value
-    if game.PlaceId == 2753915549 then
-        if lvl < 10 then
-            return "BanditQuest1", 1, "Bandit",
-                CFrame.new(1060, 16, 1548),
-                CFrame.new(1145, 16, 1610)
-        elseif lvl < 15 then
-            return "JungleQuest", 1, "Monkey",
-                CFrame.new(-1602, 37, 153),
-                CFrame.new(-1493, 23, 245)
-        elseif lvl < 30 then
-            return "JungleQuest", 2, "Gorilla",
-                CFrame.new(-1602, 37, 153),
-                CFrame.new(-1252, 7, -474)
-        elseif lvl < 60 then
-            return "BuggyQuest1", 1, "Pirate",
-                CFrame.new(-1140, 5, 3835),
-                CFrame.new(-1200, 5, 3920)
-        elseif lvl < 90 then
-            return "BuggyQuest1", 2, "Brute",
-                CFrame.new(-1140, 5, 3835),
-                CFrame.new(-1182, 15, 4370)
-        elseif lvl < 700 then
-            return "FountainQuest", (lvl < 650) and 1 or 2, (lvl < 650) and "Galley Pirate" or "Galley Captain",
-                CFrame.new(5244, 38, 4073),
-                CFrame.new(5630, 39, 4896)
-        end
-    elseif game.PlaceId == 4442272183 then
-        if lvl < 850 then
-            return "Area1Quest", 1, "Raider",
-                CFrame.new(-426, 72, 1838),
-                CFrame.new(-786, 138, 2326)
-        elseif lvl < 900 then
-            return "Area1Quest", 2, "Mercenary",
-                CFrame.new(-426, 72, 1838),
-                CFrame.new(-1006, 138, 1355)
-        elseif lvl < 1500 then
-            return "DonSwanQuest", 1, "Swan Pirate",
-                CFrame.new(2286, 15, 676),
-                CFrame.new(976, 122, 1267)
-        end
-    elseif game.PlaceId == 7449423635 then
-        if lvl < 1750 then
-            return "MarineTreeIsland", 1, "Marine Commodore",
-                CFrame.new(2170, 29, -6738),
-                CFrame.new(3373, 142, -7196)
-        else
-            return "PiratePortQuest", 1, "Pirate Millionaire",
-                CFrame.new(-282, 44, 5580),
-                CFrame.new(-402, 73, 5839)
-        end
+    if game.PlaceId == 2753915549 then -- Mundo 1
+        if lvl < 10 then return "BanditQuest1",1,"Bandit",CFrame.new(1060,16,1548),CFrame.new(1145,16,1610)
+        elseif lvl < 15 then return "JungleQuest",1,"Monkey",CFrame.new(-1602,37,153),CFrame.new(-1493,23,245)
+        elseif lvl < 30 then return "JungleQuest",2,"Gorilla",CFrame.new(-1602,37,153),CFrame.new(-1252,7,-474)
+        elseif lvl < 60 then return "BuggyQuest1",1,"Pirate",CFrame.new(-1140,5,3835),CFrame.new(-1200,5,3920)
+        elseif lvl < 90 then return "BuggyQuest1",2,"Brute",CFrame.new(-1140,5,3835),CFrame.new(-1182,15,4370)
+        elseif lvl < 700 then return "FountainQuest",(lvl<650)and1or2,(lvl<650)and"Galley Pirate"or"Galley Captain",CFrame.new(5244,38,4073),CFrame.new(5630,39,4896) end
+    elseif game.PlaceId == 4442272183 then -- Mundo 2
+        if lvl < 850 then return "Area1Quest",1,"Raider",CFrame.new(-426,72,1838),CFrame.new(-786,138,2326)
+        elseif lvl < 900 then return "Area1Quest",2,"Mercenary",CFrame.new(-426,72,1838),CFrame.new(-1006,138,1355)
+        elseif lvl < 1500 then return "DonSwanQuest",1,"Swan Pirate",CFrame.new(2286,15,676),CFrame.new(976,122,1267) end
+    elseif game.PlaceId == 7449423635 then -- Mundo 3
+        if lvl < 1750 then return "MarineTreeIsland",1,"Marine Commodore",CFrame.new(2170,29,-6738),CFrame.new(3373,142,-7196)
+        else return "PiratePortQuest",1,"Pirate Millionaire",CFrame.new(-282,44,5580),CFrame.new(-402,73,5839) end
     end
-    return "BanditQuest1", 1, "Bandit", CFrame.new(1060, 16, 1548), CFrame.new(1145, 16, 1610)
+    return "BanditQuest1",1,"Bandit",CFrame.new(1060,16,1548),CFrame.new(1145,16,1610)
 end
 
 -- ==== World Change ====
 local function CheckWorldChange()
     local lvl = Player.Data.Level.Value
-    if lvl >= 700 and game.PlaceId == 2753915549 then
-        local r = CommF:InvokeServer("TravelDressrosa")
-        if r == nil or r == false then
-            warn("Ir ao NPC do Coliseu/Impel para liberar Second Sea.")
-        end
-    elseif lvl >= 1500 and game.PlaceId == 4442272183 then
-        local r = CommF:InvokeServer("TravelZou")
-        if r == nil or r == false then
-            warn("Complete os requisitos do Third Sea (rip_indra quest).")
-        end
-    end
+    if lvl>=700 and game.PlaceId==2753915549 then CommF:InvokeServer("TravelDressrosa")
+    elseif lvl>=1500 and game.PlaceId==4442272183 then CommF:InvokeServer("TravelZou") end
 end
 
 -- ==== Fighting Styles ====
 local StylesOrder = {
-    { name = "Black Leg", buy = function() return CommF:InvokeServer("BuyBlackLeg") end, req = function(l,b,f) return l>=50 and b>=150000 end },
-    { name = "Electro", buy = function() return CommF:InvokeServer("BuyElectro") end, req = function(l,b,f) return l>=50 and b>=500000 end },
-    { name = "Water Kung Fu", buy = function() return CommF:InvokeServer("BuyFishmanKarate") end, req = function(l,b,f) return l>=100 and b>=750000 end },
-    { name = "Dragon Claw", buy = function() return CommF:InvokeServer("BlackbeardReward","DragonClaw","2") end, req = function(l,b,f) return l>=300 and b>=1500000 and f>=3000 end },
-    { name = "Superhuman", buy = function() return CommF:InvokeServer("BuySuperhuman") end, req = function(l,b,f) return l>=700 and b>=3000000 end },
-    { name = "Death Step", buy = function() return CommF:InvokeServer("BuyDeathStep") end, req = function(l,b,f) return l>=1000 and b>=5000000 end },
-    { name = "Sharkman Karate", buy = function() return CommF:InvokeServer("BuySharkmanKarate") end, req = function(l,b,f) return l>=1200 and b>=2500000 end },
-    { name = "Electric Claw", buy = function() return CommF:InvokeServer("BuyElectricClaw") end, req = function(l,b,f) return l>=1500 and b>=3000000 end },
-    { name = "God Human", buy = function() return CommF:InvokeServer("BuyGodHuman") end, req = function(l,b,f) return l>=2100 and b>=5000000 and f>=5000 end }
+    {req=function(l,b,f) return l>=50 and b>=150000 end, buy=function() return CommF:InvokeServer("BuyBlackLeg") end},
+    {req=function(l,b,f) return l>=50 and b>=500000 end, buy=function() return CommF:InvokeServer("BuyElectro") end},
+    {req=function(l,b,f) return l>=100 and b>=750000 end, buy=function() return CommF:InvokeServer("BuyFishmanKarate") end},
+    {req=function(l,b,f) return l>=300 and b>=1500000 and f>=3000 end, buy=function() return CommF:InvokeServer("BlackbeardReward","DragonClaw","2") end},
+    {req=function(l,b,f) return l>=700 and b>=3000000 end, buy=function() return CommF:InvokeServer("BuySuperhuman") end},
+    {req=function(l,b,f) return l>=1000 and b>=5000000 end, buy=function() return CommF:InvokeServer("BuyDeathStep") end},
+    {req=function(l,b,f) return l>=1200 and b>=2500000 end, buy=function() return CommF:InvokeServer("BuySharkmanKarate") end},
+    {req=function(l,b,f) return l>=1500 and b>=3000000 end, buy=function() return CommF:InvokeServer("BuyElectricClaw") end},
+    {req=function(l,b,f) return l>=2100 and b>=5000000 and f>=5000 end, buy=function() return CommF:InvokeServer("BuyGodHuman") end}
 }
 
 local function AutoBuyStyles()
     local l = Player.Data.Level.Value
     local b = Player.Data.Beli.Value
     local f = Player.Data.Fragments.Value
-    for _, style in ipairs(StylesOrder) do
-        if style.req(l,b,f) then
-            style.buy()
-            task.wait(0.3)
-        end
+    for _,style in ipairs(StylesOrder) do
+        if style.req(l,b,f) then style.buy() task.wait(0.2) end
     end
 end
 
 -- ==== Auto Stats ====
 local function AutoStats()
-    local points = Player.Data.Points.Value
-    if points <= 0 then return end
-    if Player.Data.Melee.Value < 2400 then
-        CommF:InvokeServer("AddPoint","Melee",points)
-    else
-        CommF:InvokeServer("AddPoint","Defense",points)
-    end
+    local p = Player.Data.Points.Value
+    if p<=0 then return end
+    if Player.Data.Melee.Value < 2400 then CommF:InvokeServer("AddPoint","Melee",p)
+    else CommF:InvokeServer("AddPoint","Defense",p) end
 end
 
 -- ==== Core Toggles ====
-local Toggles = {
-    AutoFarm = false,
-    AutoWorld = true,
-    AutoStyles = true,
-    AutoStats = true,
-    AutoHaki = true
-}
+local Toggles = {AutoFarm=false,AutoWorld=true,AutoStyles=true,AutoStats=true,AutoHaki=true}
 
 -- ==== Auto Farm Loop ====
 task.spawn(function()
@@ -234,35 +165,37 @@ task.spawn(function()
             if Toggles.AutoWorld then CheckWorldChange() end
 
             if Toggles.AutoFarm and IsAlive() then
-                local qName, qLvl, mob, qPos, mPos = CheckQuest()
+                local qName,qLvl,mob,qPos,mPos = CheckQuest()
 
-                if qPos then fastpos(qPos) end
-                CommF:InvokeServer("AbandonQuest")
-                task.wait(0.2)
-                CommF:InvokeServer("StartQuest", qName, qLvl)
+                -- Se não tiver quest ativa, pega
+                if not Player.PlayerGui:FindFirstChild("Quest") then
+                    if qPos then fastpos(qPos) end
+                    CommF:InvokeServer("StartQuest",qName,qLvl)
+                    task.wait(0.5)
+                end
 
-                if mPos then fastpos(mPos) end
-
+                -- Procura mob na workspace
                 local ws = workspace:FindFirstChild("Enemies")
                 local target = nil
                 if ws then
-                    for _, v in ipairs(ws:GetChildren()) do
-                        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and string.find(v.Name, mob) and v.Humanoid.Health > 0 then
-                            target = v
-                            break
+                    for _,v in ipairs(ws:GetChildren()) do
+                        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and string.find(v.Name,mob) and v.Humanoid.Health>0 then
+                            target = v break
                         end
                     end
                 end
 
                 if target then
-                    while target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 and Toggles.AutoFarm do
+                    EquipWeapon("Melee") -- tenta usar melee (ajuste se necessário)
+                    while target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health>0 and Toggles.AutoFarm do
                         if not IsAlive() then break end
-                        fastpos(target.HumanoidRootPart.CFrame * CFrame.new(0, 6, 7))
+                        fastpos(target.HumanoidRootPart.CFrame*CFrame.new(0,6,7))
                         Click()
                         task.wait(0.1)
                     end
                 else
-                    task.wait(0.8)
+                    if mPos then fastpos(mPos) end
+                    task.wait(0.5)
                 end
             end
         end)
@@ -270,35 +203,11 @@ task.spawn(function()
 end)
 
 -- ==== GUI ====
-Tabs.Farm:AddToggle("AutoFarm", {Title = "Auto Farm Level", Default = false, Callback = function(v)
-    Toggles.AutoFarm = v
-    Notify("Auto Farm", v and "Ativado" or "Desativado")
-end})
+Tabs.Farm:AddToggle("AutoFarm",{Title="Auto Farm Level",Default=false,Callback=function(v)Toggles.AutoFarm=v Notify("AutoFarm",v and "Ativado"or"Desativado")end})
+Tabs.Farm:AddToggle("AutoWorld",{Title="Troca Automática de Mundos",Default=true,Callback=function(v)Toggles.AutoWorld=v end})
+Tabs.Styles:AddToggle("AutoStyles",{Title="Evoluir Fighting Styles até God Human",Default=true,Callback=function(v)Toggles.AutoStyles=v end})
+Tabs.Stats:AddToggle("AutoStats",{Title="Auto Distribuir Pontos (Melee > Defense)",Default=true,Callback=function(v)Toggles.AutoStats=v end})
+Tabs.Config:AddToggle("AutoHaki",{Title="Auto Haki (Buso)",Default=true,Callback=function(v)Toggles.AutoHaki=v end})
+Tabs.Config:AddButton({Title="Reset Quest",Description="Abandona quest atual",Callback=function()CommF:InvokeServer("AbandonQuest")Notify("Quest","Abandonada.")end})
 
-Tabs.Farm:AddToggle("AutoWorld", {Title = "Troca Automática de Mundos", Default = true, Callback = function(v)
-    Toggles.AutoWorld = v
-end})
-
-Tabs.Styles:AddToggle("AutoStyles", {Title = "Evoluir Fighting Styles até God Human", Default = true, Callback = function(v)
-    Toggles.AutoStyles = v
-    if v then Notify("Fighting Styles", "Auto evolução ativada") end
-end})
-
-Tabs.Stats:AddToggle("AutoStats", {Title = "Auto Distribuir Pontos (Melee > Defense)", Default = true, Callback = function(v)
-    Toggles.AutoStats = v
-end})
-
-Tabs.Config:AddToggle("AutoHaki", {Title = "Auto Haki (Buso)", Default = true, Callback = function(v)
-    Toggles.AutoHaki = v
-end})
-
-Tabs.Config:AddButton({ Title = "Reset Quest", Description = "Abandona quest atual", Callback = function()
-    CommF:InvokeServer("AbandonQuest")
-    Notify("Quest", "Abandonada.")
-end})
-
-if Fluent and Fluent.Notify then
-    Notify("Allan Hub", "Carregado com sucesso! Bom farm :)", 6)
-else
-    warn("Fluent UI não carregou; interface básica stub em uso.")
-end
+Notify("Allan Hub","Carregado com sucesso!",6)
