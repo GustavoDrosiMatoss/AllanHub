@@ -26,7 +26,7 @@ getgenv().Config = {
 
 -- Variables
 
-local DCSettings = Config["https://discord.gg/VKsDR8cb"]
+local DCSettings = getgenv().Config["Discord"]
 local FSSettings = Config["Autofarm"]
 
 function TP(P1)
