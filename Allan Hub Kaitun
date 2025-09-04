@@ -1,5 +1,3 @@
-
--- === SAFE HELPERS ADDED BY FIXER ===
 local function safeFind(root, names)
     local cur = root
     for i = 1, #names do
