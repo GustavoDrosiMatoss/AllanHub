@@ -3,10 +3,6 @@ local function loadFluent()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
     end)
     if ok and lib then return lib end
-    ok, lib = pcall(function()
-        return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-    end)
-    if ok and lib then return lib end
     warn("Falha ao carregar Fluent UI.")
     return {
         CreateWindow = function()
