@@ -710,20 +710,36 @@ local function SafeNotify(title, text, duration)
 end
 
 SafeNotify("island Hub", "Loading", 5)
-
--- Correção para os módulos de efeitos
-local function SafeHookModule(modulePath, replacement)
-    pcall(function()
-        if modulePath then
-            local success, module = pcall(require, modulePath)
-            if success and type(module) == "function" then
-                if hookfunction then
-                    hookfunction(module, replacement or function() end)
-                end
+f hookfunction and type(hookfunction) == "function" then
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local EffectContainer = ReplicatedStorage:FindFirstChild("Effect") and ReplicatedStorage.Effect:FindFirstChild("Container")
+    if EffectContainer then
+        local Death = EffectContainer:FindFirstChild("Death")
+        if Death then
+            local success, result = pcall(require, Death)
+            if success and type(result) == "function" then
+                hookfunction(result, function() end)
             end
         end
-    end)
+        local Respawn = EffectContainer:FindFirstChild("Respawn")
+        if Respawn then
+            local success, result = pcall(require, Respawn)
+            if success and type(result) == "function" then
+                hookfunction(result, function() end)
+            end
+        end
+    end
+    local GuideModule = ReplicatedStorage:FindFirstChild("GuideModule")
+    if GuideModule then
+        local success, module = pcall(require, GuideModule)
+        if success and module and type(module.ChangeDisplayedNPC) == "function" then
+            hookfunction(module.ChangeDisplayedNPC, function() end)
+        end
+    end
+else
+    print("hookfunction não está disponível")
 end
+
 
 -- Desabilitar efeitos de morte e respawn
 local EffectContainer = ReplicatedStorage:FindFirstChild("Effect")
