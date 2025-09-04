@@ -1,3 +1,6 @@
+-- Allan Hub Configurado - Fluent Full GUI (auto-mapping, ASCII-only)
+
+-- ========== Fluent Loader (RAW + fallback + stub) ==========
 local function loadFluent()
     local ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
@@ -9,7 +12,7 @@ local function loadFluent()
     end)
     if ok and lib then return lib end
 
-    warn("[AllanHub] Não foi possível carregar Fluent; usando stub da UI.")
+    warn("[AllanHub] Nao foi possivel carregar Fluent; usando stub da UI.")
     local stub = {}
     function stub:CreateWindow()
         local w = {}
@@ -40,17 +43,17 @@ local Window = Fluent:CreateWindow({
 
 -- ========== Tabs ==========
 local Tabs = {
-    Farm      = Window:AddTab({ Title = "Farm", Icon = "swords" }),
-    Boss      = Window:AddTab({ Title = "Boss", Icon = "skull" }),
-    Raids     = Window:AddTab({ Title = "Raids", Icon = "zap" }),
-    Fruits    = Window:AddTab({ Title = "Frutas", Icon = "apple" }),
-    Fighting  = Window:AddTab({ Title = "Fighting Styles", Icon = "hand" }),
-    Mastery   = Window:AddTab({ Title = "Mastery", Icon = "target" }),
-    Swords    = Window:AddTab({ Title = "Swords", Icon = "axe" }),
-    Materials = Window:AddTab({ Title = "Materiais", Icon = "box" }),
-    Teleport  = Window:AddTab({ Title = "Teleports", Icon = "map" }),
-    Stats     = Window:AddTab({ Title = "Stats", Icon = "bar-chart-3" }),
-    Config    = Window:AddTab({ Title = "Config", Icon = "settings" })
+    Farm      = Window:AddTab({ Title = "Farm" }),
+    Boss      = Window:AddTab({ Title = "Boss" }),
+    Raids     = Window:AddTab({ Title = "Raids" }),
+    Fruits    = Window:AddTab({ Title = "Frutas" }),
+    Fighting  = Window:AddTab({ Title = "Fighting Styles" }),
+    Mastery   = Window:AddTab({ Title = "Mastery" }),
+    Swords    = Window:AddTab({ Title = "Swords" }),
+    Materials = Window:AddTab({ Title = "Materiais" }),
+    Teleport  = Window:AddTab({ Title = "Teleports" }),
+    Stats     = Window:AddTab({ Title = "Stats" }),
+    Config    = Window:AddTab({ Title = "Config" })
 }
 
 -- ========== Util ==========
@@ -60,14 +63,15 @@ local function Notify(title, content, duration)
     end
 end
 
-local env = getgenv and getgenv() or _G
+local ok_g, env = pcall(function() return getgenv() end)
+if not ok_g or type(env) ~= "table" then env = _G end
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CommF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
 
--- cria toggle que liga/desliga variável booleana e opcionalmente chama funções start/stop
+-- cria toggle que liga/desliga variavel booleana e opcionalmente chama funcoes start/stop
 local function bindToggle(tab, id, title, varName, startFnName, stopFnName, defaultValue)
     if env[varName] == nil and (not startFnName or type(env[startFnName]) ~= "function") then
-        return -- nada a mapear
+        return
     end
     if env[varName] == nil then env[varName] = defaultValue == true end
 
@@ -86,7 +90,7 @@ local function bindToggle(tab, id, title, varName, startFnName, stopFnName, defa
     })
 end
 
--- botão simples que chama função
+-- botao simples que chama funcao
 local function bindButton(tab, title, fnName, desc)
     if type(env[fnName]) ~= "function" then return end
     tab:AddButton({ Title = title, Description = desc or "", Callback = function()
@@ -95,7 +99,7 @@ local function bindButton(tab, title, fnName, desc)
     end})
 end
 
--- dropdown que escreve em variável/ chama fn setter
+-- dropdown que escreve em variavel/ chama fn setter
 local function bindDropdown(tab, id, title, options, varName, setterFnName)
     if (varName and env[varName] == nil) and (not setterFnName or type(env[setterFnName]) ~= "function") then
         return
@@ -114,7 +118,7 @@ local function bindDropdown(tab, id, title, options, varName, setterFnName)
     })
 end
 
--- slider que escreve em variável/ chama fn setter
+-- slider que escreve em variavel/ chama fn setter
 local function bindSlider(tab, id, title, min, max, default, step, varName, setterFnName)
     if (varName and env[varName] == nil) and (not setterFnName or type(env[setterFnName]) ~= "function") then
         return
@@ -133,14 +137,13 @@ end
 
 -- ========== Farm ==========
 bindToggle(Tabs.Farm, "AutoFarm", "Auto Farm Level", "AutoFarm", "StartAutoFarm", "StopAutoFarm", false)
-bindToggle(Tabs.Farm, "AutoWorld", "Trocar Mundo Automático", "AutoWorld", "StartAutoWorld", "StopAutoWorld", true)
+bindToggle(Tabs.Farm, "AutoWorld", "Trocar Mundo Automatico", "AutoWorld", "StartAutoWorld", "StopAutoWorld", true)
 bindToggle(Tabs.Farm, "AutoFarmBone", "Farm Bones", "AutoFarmBone", nil, nil, false)
-bindToggle(Tabs.Farm, "AutoQuest", "Pegar Quest Automático", "AutoQuest", nil, nil, true)
+bindToggle(Tabs.Farm, "AutoQuest", "Pegar Quest Automatico", "AutoQuest", nil, nil, true)
 bindToggle(Tabs.Farm, "AutoHaki", "Auto Haki (Buso)", "AutoHaki", nil, nil, true)
 
--- Opções de arma, se existirem listas
-local weaponOptions = {}
-for _,cont in ipairs({ "Melee", "Sword", "Gun" }) do table.insert(weaponOptions, cont) end
+-- Armas padrao
+local weaponOptions = { "Melee", "Sword", "Gun" }
 bindDropdown(Tabs.Farm, "WeaponType", "Tipo de Arma", weaponOptions, "SelectedWeaponType", "SetWeaponType")
 
 -- ========== Boss ==========
@@ -155,11 +158,11 @@ bindDropdown(Tabs.Raids, "RaidChip", "Raid Chip", {"Flame","Ice","Quake","Light"
 -- ========== Frutas ==========
 bindToggle(Tabs.Fruits, "FruitSniper", "Fruit Sniper (loja)", "FruitSniper", "StartFruitSniper", "StopFruitSniper", false)
 bindToggle(Tabs.Fruits, "AutoStoreFruit", "Auto Guardar Frutas", "AutoStoreFruit", nil, nil, true)
-bindToggle(Tabs.Fruits, "AutoBuyFruit", "Auto Comprar Frutas Aleatórias", "AutoBuyFruit", "StartAutoBuyFruit", "StopAutoBuyFruit", false)
-bindToggle(Tabs.Fruits, "GrabSpawnedFruits", "Pegar Frutas no Chão", "GrabSpawnedFruits", "StartGrabFruits", "StopGrabFruits", false)
+bindToggle(Tabs.Fruits, "AutoBuyFruit", "Auto Comprar Frutas Aleatorias", "AutoBuyFruit", "StartAutoBuyFruit", "StopAutoBuyFruit", false)
+bindToggle(Tabs.Fruits, "GrabSpawnedFruits", "Pegar Frutas no Chao", "GrabSpawnedFruits", "StartGrabFruits", "StopGrabFruits", false)
 
 -- ========== Fighting Styles ==========
-bindToggle(Tabs.Fighting, "AutoStyles", "Evoluir Styles até God Human", "AutoStyles", "StartAutoStyles", "StopAutoStyles", true)
+bindToggle(Tabs.Fighting, "AutoStyles", "Evoluir Styles ate God Human", "AutoStyles", "StartAutoStyles", "StopAutoStyles", true)
 bindToggle(Tabs.Fighting, "AutoSuperhuman", "Auto Superhuman", "AutoSuperhuman", nil, nil, false)
 bindToggle(Tabs.Fighting, "AutoElectricClaw", "Auto Electric Claw", "AutoElectricClaw", nil, nil, false)
 bindToggle(Tabs.Fighting, "AutoSharkman", "Auto Sharkman Karate", "AutoSharkmanKarate", nil, nil, false)
@@ -187,7 +190,7 @@ bindDropdown(Tabs.Materials, "MaterialType", "Material", {"Leather","Scrap Metal
 -- ========== Teleports ==========
 bindButton(Tabs.Teleport, "Ir para Second Sea", "GoSecondSea", "Viaja automaticamente (requer lvl 700+).")
 bindButton(Tabs.Teleport, "Ir para Third Sea", "GoThirdSea", "Viaja automaticamente (requer lvl 1500+).")
-Tabs.Teleport:AddButton({ Title = "Abandonar Quest", Description = "Força abandonar a quest atual", Callback = function()
+Tabs.Teleport:AddButton({ Title = "Abandonar Quest", Description = "Abandona a quest atual", Callback = function()
     if CommF then pcall(function() CommF:InvokeServer("AbandonQuest") end) end
 end})
 
@@ -201,4 +204,4 @@ bindToggle(Tabs.Config, "TweenTP", "Teleport (Tween) Suave", "TweenTeleport", ni
 bindToggle(Tabs.Config, "AntiAFK", "Anti AFK", "AntiAFK", "StartAntiAFK", "StopAntiAFK", true)
 bindButton(Tabs.Config, "Recarregar Script", "ReloadScript", "Re-executa rotinas do Hub.")
 
-Notify("Allan Hub", "Fluent GUI carregado. Controles exibidos conforme funções/variáveis detectadas.", 6)
+Notify("Allan Hub", "Fluent GUI carregado (ASCII). Controles exibidos conforme funcoes/variaveis detectadas.", 6)
