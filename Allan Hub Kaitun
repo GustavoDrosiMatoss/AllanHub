@@ -8175,3 +8175,40 @@ spawn(function()
     end
 end)
 -- >>> FIM FIX <<<
+
+
+-- >>> FIX: AutoFarm agora teleporta se os NPCs estiverem longe <<<
+spawn(function()
+    while task.wait(0.5) do
+        if getgenv().AutoFarm and getgenv().FarmMode == "Farm Level" then
+            local player = game.Players.LocalPlayer
+            local gui = player.PlayerGui:FindFirstChild("Main")
+            local questFrame = gui and gui:FindFirstChild("Quest")
+
+            -- Se não tiver quest, pega de novo
+            if questFrame and not questFrame.Visible then
+                pcall(function()
+                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
+                end)
+                task.wait(0.8)
+            else
+                -- Se já tiver quest, vai pros mobs
+                if CFrameMon then
+                    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                    if root then
+                        local dist = (root.Position - CFrameMon.Position).Magnitude
+                        if dist > 2000 then
+                            -- Muito longe: teleporta
+                            fastpos(CFrameMon)
+                            task.wait(1.5)
+                        else
+                            -- Perto: vai normalmente
+                            topos(CFrameMon)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+-- >>> FIM FIX <<<
