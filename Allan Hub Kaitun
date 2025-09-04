@@ -1,8 +1,3 @@
--- Allan Hub Configurado — Fluent Full GUI (auto-mapping)
--- Recria a interface inteira no Fluent, detectando variáveis e funções existentes.
--- Mostra apenas controles que de fato existem no seu script original.
-
--- ========== Fluent Loader (RAW + fallback + stub) ==========
 local function loadFluent()
     local ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
