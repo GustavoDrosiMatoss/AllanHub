@@ -1,4 +1,4 @@
--- Allan Hub Configurado — Fluent GUI (STRICT CLEAN)
+-- Allan Hub Configurado + Fluent GUI Final
 local function loadFluent()
     local ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
@@ -44,14 +44,15 @@ local Tabs = {
     Config = Window:AddTab({ Title = "Config", Icon = "settings" })
 }
 
-Toggles = Toggles or {AutoFarm=false,AutoWorld=true,AutoStyles=true,AutoStats=true,AutoHaki=true}
+-- Variáveis de controle
+Toggles = {AutoFarm=false, AutoWorld=true, AutoStyles=true, AutoStats=true, AutoHaki=true}
 
 local function Notify(title, content, duration)
     if Fluent and Fluent.Notify then
         Fluent:Notify({ Title = title or "Allan Hub", Content = content or "", Duration = duration or 4 })
     end
 end
--- [Fluent header end]
+
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
@@ -1383,8 +1384,8 @@ function AttackNoCoolDown()
     end
 end
 print("--[[Loaded UI]]--")
-local Fluent = -- removed legacy loader
--- removed legacy window --> Window = Fluent:CreateWindow({
+local Fluent = -- GUI removida
+Window = Fluent:CreateWindow({
     Title = " Allan Hub",
     SubTitle = "By Allan",
     TabWidth = 155,
@@ -1393,7 +1394,7 @@ local Fluent = -- removed legacy loader
     Theme = "Luffy",
     MinimizeKey = Enum.KeyCode.LeftControl 
 })
--- removed legacy tab --> Shop = Window:AddTab({ Title = "Tab Shop", Icon = "" })
+Shop = Window:AddTab({ Title = "Tab Shop", Icon = "" })
 sex = {
     "WildDares",
     "BossBuild",
@@ -1661,7 +1662,7 @@ Shop:AddButton({
         end
     end
 })
--- removed legacy tab --> Server = Window:AddTab({ Title = "Tab Status And Server", Icon = "" })
+Server = Window:AddTab({ Title = "Tab Status And Server", Icon = "" })
 Time = Server:AddParagraph({
     Title = "Time Zone",
     Content = ""
@@ -2009,7 +2010,7 @@ function Hop()
     end
     Teleport()
 end
--- removed legacy tab --> LGa = Window:AddTab({ Title = "Tab Local Player", Icon = "" })
+LGa = Window:AddTab({ Title = "Tab Local Player", Icon = "" })
 LGa:AddButton({
     Title = "Stop Tween",
     Callback = function()
@@ -2470,7 +2471,7 @@ Toggle:OnChanged(function(Value)
         until not getgenv().TeleportIsland
     end
 end)
--- removed legacy tab --> Settings = Window:AddTab({ Title = "Setting Farm", Icon = "" })
+Settings = Window:AddTab({ Title = "Setting Farm", Icon = "" })
 Dropdown = Settings:AddDropdown("DropdownFarm", {
     Title = "Select Weapon",
     Values = {"Melee","Sword","Blox Fruit"},
@@ -2778,7 +2779,7 @@ spawn(function()
         end)
     end
 end)
--- removed legacy tab --> Main = Window:AddTab({ Title = "Tab Farming", Icon = "" })
+Main = Window:AddTab({ Title = "Tab Farming", Icon = "" })
 Main:AddButton({
     Title = "Copy discord invite link",
     Callback = function()
@@ -3479,7 +3480,7 @@ Toggle = Main:AddToggle("Toggle", {Title = "Skill F", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().SkillF = Value
 end)
--- removed legacy tab --> Stack = Window:AddTab({ Title = "Tab Stack Farm", Icon = "" })
+Stack = Window:AddTab({ Title = "Tab Stack Farm", Icon = "" })
 Dropdown = Stack:AddDropdown("DropdownFarm", {
     Title = "Select Melee",
     Values = {"Superhuman", "DeathStep", "Sharkman Karate", "Electric Claw", "Dragon Talon", "GodHuman"},
@@ -4355,7 +4356,7 @@ spawn(function()
         end
     end
 end)
--- removed legacy tab --> Other = Window:AddTab({ Title = "Tab Farming Other", Icon = "" })
+Other = Window:AddTab({ Title = "Tab Farming Other", Icon = "" })
 Other:AddParagraph({
         Title = "Quest Dragon",
         Content = ""
@@ -4940,7 +4941,7 @@ spawn(function()
         end
     end
 end)
--- removed legacy tab --> Blog = Window:AddTab({ Title = "Tab Fruit And Raid", Icon = "" })
+Blog = Window:AddTab({ Title = "Tab Fruit And Raid", Icon = "" })
 Toggle = Blog:AddToggle("Toggle", {Title = "Random Devil Fruit", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().RandomFruit = Value
@@ -5244,7 +5245,7 @@ Blog:AddButton({
     end
 })
 end
--- removed legacy tab --> Sea = Window:AddTab({ Title = "Tab Sea Event", Icon = "" })
+Sea = Window:AddTab({ Title = "Tab Sea Event", Icon = "" })
 SetSpeedBoatSlider = Sea:AddSlider("SliderSpeedBoat", {
 	Title = "Ship Speed",
 	Default = 300,
@@ -6145,7 +6146,7 @@ task.spawn(function()
         end
     end
 end)
--- removed legacy tab --> ChooseSkill = Window:AddTab({ Title = "Tab Setting Select Skill", Icon = "" })
+ChooseSkill = Window:AddTab({ Title = "Tab Setting Select Skill", Icon = "" })
 ChooseSkill:AddParagraph({
     Title = "Setting Sea Event",
     Content = string.rep("-", 21)
@@ -6330,7 +6331,7 @@ task.spawn(function()
         end)
     end
 end)
--- removed legacy tab --> Volcanic = Window:AddTab({ Title = "Tab Volcanic Event", Icon = "" })
+Volcanic = Window:AddTab({ Title = "Tab Volcanic Event", Icon = "" })
 Volcanic:AddButton({
 	Title = "Destroy Lava In Prehistoric Island",
 	Callback = function()
@@ -6580,7 +6581,7 @@ Toggle = Volcanic:AddToggle("Toggle", {
 Toggle:OnChanged(function(v404)
     getgenv().UseGun = v404
 end)
--- removed legacy tab --> Race = Window:AddTab({ Title = "Tab Upgrade Race", Icon = "" })
+Race = Window:AddTab({ Title = "Tab Upgrade Race", Icon = "" })
 Race:AddParagraph({
     Title = "Race Draco",
     Content = string.rep("-", 21)
@@ -7194,7 +7195,7 @@ spawn(function()
         end
     end
 end)
--- removed legacy tab --> Get = Window:AddTab({ Title = "Tab Get Items And Buy", Icon = "" })
+Get = Window:AddTab({ Title = "Tab Get Items And Buy", Icon = "" })
 Toggle = Get:AddToggle("Toggle", {Title = "Auto Trade Bone", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoTradeBone = Value
@@ -7677,7 +7678,7 @@ spawn(function()
         end
     end
 end)
--- removed legacy tab --> ESP = Window:AddTab({ Title = "Tab ESP", Icon = "" })
+ESP = Window:AddTab({ Title = "Tab ESP", Icon = "" })
 local RunService = game:GetService("RunService")
 local player = game:GetService("Players").LocalPlayer
 local IslandESP = false
@@ -7890,7 +7891,7 @@ Toggle:OnChanged(function(Value)
         end
     end
 end)
--- removed legacy tab --> PVP = Window:AddTab({ Title = "Tab PVP", Icon = "" })
+PVP = Window:AddTab({ Title = "Tab PVP", Icon = "" })
 local Playerslist = {}
 for i, player in ipairs(game.Players:GetPlayers()) do
     Playerslist[i] = player.Name
@@ -8173,11 +8174,15 @@ if currentTime - lastNotificationTime >= notificationCooldown then
     lastNotificationTime = currentTime
 end
 
--- ==== Fluent GUI Controls ====
+
+-- ==== Fluent GUI Controles ====
 Tabs.Farm:AddToggle("AutoFarm",{Title="Auto Farm Level",Default=false,Callback=function(v)Toggles.AutoFarm=v Notify("AutoFarm",v and "Ativado" or "Desativado") end})
 Tabs.Farm:AddToggle("AutoWorld",{Title="Troca Automática de Mundos",Default=true,Callback=function(v)Toggles.AutoWorld=v end})
+
 Tabs.Styles:AddToggle("AutoStyles",{Title="Evoluir Fighting Styles até God Human",Default=true,Callback=function(v)Toggles.AutoStyles=v end})
+
 Tabs.Stats:AddToggle("AutoStats",{Title="Auto Distribuir Pontos (Melee > Defense)",Default=true,Callback=function(v)Toggles.AutoStats=v end})
+
 Tabs.Config:AddToggle("AutoHaki",{Title="Auto Haki (Buso)",Default=true,Callback=function(v)Toggles.AutoHaki=v end})
 Tabs.Config:AddButton({Title="Reset Quest",Description="Abandona quest atual",Callback=function()game:GetService('ReplicatedStorage').Remotes.CommF_:InvokeServer('AbandonQuest')Notify('Quest','Abandonada.')end})
 
