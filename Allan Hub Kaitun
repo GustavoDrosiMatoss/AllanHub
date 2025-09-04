@@ -8149,3 +8149,29 @@ spawn(function()
     end
 end)
 -- >>> FIM FIX <<<
+
+
+-- >>> FIX: AutoFarm não fica travado no NPC <<<
+spawn(function()
+    while task.wait(0.5) do
+        if getgenv().AutoFarm and getgenv().FarmMode == "Farm Level" then
+            local player = game.Players.LocalPlayer
+            local gui = player.PlayerGui:FindFirstChild("Main")
+            local questFrame = gui and gui:FindFirstChild("Quest")
+
+            -- Se não tiver quest ativa, pega a missão
+            if questFrame and not questFrame.Visible then
+                pcall(function()
+                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
+                end)
+                task.wait(0.8) -- pequeno delay para evitar bug
+            else
+                -- Se tiver quest, vai pros mobs
+                if CFrameMon then
+                    topos(CFrameMon)
+                end
+            end
+        end
+    end
+end)
+-- >>> FIM FIX <<<
