@@ -1,18 +1,18 @@
--- Allan Hub Configurado - Fluent Full GUI (auto-mapping, ASCII-only)
+-- Allan Hub Configurado - Fluent GUI (clonado automaticamente)
+-- Este arquivo recria a interface completa usando Fluent com base no script original.
 
--- ========== Fluent Loader (RAW + fallback + stub) ==========
+-- Loader do Fluent (RAW + fallback + stub)
 local function loadFluent()
     local ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
     end)
     if ok and lib then return lib end
-
     ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
     end)
     if ok and lib then return lib end
 
-    warn("[AllanHub] Nao foi possivel carregar Fluent; usando stub da UI.")
+    warn("[AllanHub] Nao foi possivel carregar Fluent; usando stub.")
     local stub = {}
     function stub:CreateWindow()
         local w = {}
@@ -41,167 +41,4088 @@ local Window = Fluent:CreateWindow({
     Theme = "Dark"
 })
 
--- ========== Tabs ==========
-local Tabs = {
-    Farm      = Window:AddTab({ Title = "Farm" }),
-    Boss      = Window:AddTab({ Title = "Boss" }),
-    Raids     = Window:AddTab({ Title = "Raids" }),
-    Fruits    = Window:AddTab({ Title = "Frutas" }),
-    Fighting  = Window:AddTab({ Title = "Fighting Styles" }),
-    Mastery   = Window:AddTab({ Title = "Mastery" }),
-    Swords    = Window:AddTab({ Title = "Swords" }),
-    Materials = Window:AddTab({ Title = "Materiais" }),
-    Teleport  = Window:AddTab({ Title = "Teleports" }),
-    Stats     = Window:AddTab({ Title = "Stats" }),
-    Config    = Window:AddTab({ Title = "Config" })
-}
-
--- ========== Util ==========
 local function Notify(title, content, duration)
     if Fluent and Fluent.Notify then
         Fluent:Notify({ Title = title or "Allan Hub", Content = content or "", Duration = duration or 4 })
     end
 end
 
-local ok_g, env = pcall(function() return getgenv() end)
-if not ok_g or type(env) ~= "table" then env = _G end
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CommF = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
+-- Cria tabela de abas
+local Tabs = {}
 
--- cria toggle que liga/desliga variavel booleana e opcionalmente chama funcoes start/stop
-local function bindToggle(tab, id, title, varName, startFnName, stopFnName, defaultValue)
-    if env[varName] == nil and (not startFnName or type(env[startFnName]) ~= "function") then
-        return
-    end
-    if env[varName] == nil then env[varName] = defaultValue == true end
+Tabs["Tab_Shop"] = Window:AddTab({ Title = "Tab Shop" })
+Tabs["Tab_Status_And_Server"] = Window:AddTab({ Title = "Tab Status And Server" })
+Tabs["Tab_Local_Player"] = Window:AddTab({ Title = "Tab Local Player" })
+Tabs["Setting_Farm"] = Window:AddTab({ Title = "Setting Farm" })
+Tabs["Tab_Farming"] = Window:AddTab({ Title = "Tab Farming" })
+Tabs["Tab_Stack_Farm"] = Window:AddTab({ Title = "Tab Stack Farm" })
+Tabs["Tab_Farming_Other"] = Window:AddTab({ Title = "Tab Farming Other" })
+Tabs["Tab_Fruit_And_Raid"] = Window:AddTab({ Title = "Tab Fruit And Raid" })
+Tabs["Tab_Sea_Event"] = Window:AddTab({ Title = "Tab Sea Event" })
+Tabs["Tab_Setting_Select_Skill"] = Window:AddTab({ Title = "Tab Setting Select Skill" })
+Tabs["Tab_Volcanic_Event"] = Window:AddTab({ Title = "Tab Volcanic Event" })
+Tabs["Tab_Upgrade_Race"] = Window:AddTab({ Title = "Tab Upgrade Race" })
+Tabs["Tab_Get_Items_And_Buy"] = Window:AddTab({ Title = "Tab Get Items And Buy" })
+Tabs["Tab_ESP"] = Window:AddTab({ Title = "Tab ESP" })
+Tabs["Tab_PVP"] = Window:AddTab({ Title = "Tab PVP" })
 
-    tab:AddToggle(id, {
-        Title = title,
-        Default = env[varName] == true,
+-- Toggles
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Spam Join (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Spam Join",
+        Default = _G["Toggle"] == true,
         Callback = function(v)
-            env[varName] = v
-            if v and startFnName and type(env[startFnName]) == "function" then
-                pcall(env[startFnName])
-            elseif (not v) and stopFnName and type(env[stopFnName]) == "function" then
-                pcall(env[stopFnName])
-            end
-            Notify(title, v and "Ativado" or "Desativado", 3)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Spam Join", v and "Ativado" or "Desativado", 3)
         end
     })
 end
 
--- botao simples que chama funcao
-local function bindButton(tab, title, fnName, desc)
-    if type(env[fnName]) ~= "function" then return end
-    tab:AddButton({ Title = title, Description = desc or "", Callback = function()
-        local ok, err = pcall(env[fnName])
-        if not ok then warn("[AllanHub] erro em "..fnName..": "..tostring(err)) end
-    end})
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Stats (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Stats",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Stats", v and "Ativado" or "Desativado", 3)
+        end
+    })
 end
 
--- dropdown que escreve em variavel/ chama fn setter
-local function bindDropdown(tab, id, title, options, varName, setterFnName)
-    if (varName and env[varName] == nil) and (not setterFnName or type(env[setterFnName]) ~= "function") then
-        return
-    end
-    tab:AddDropdown(id, {
-        Title = title,
-        Values = options,
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Summon Cake Prince (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Summon Cake Prince",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Summon Cake Prince", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Black Screen (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Black Screen",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Black Screen", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: White Screen (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "White Screen",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("White Screen", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Hide Mob (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Hide Mob",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Hide Mob", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Remove Dame Text (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Remove Dame Text",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Remove Dame Text", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Remove Notification (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Remove Notification",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Remove Notification", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Rejoin On Kick (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Rejoin On Kick",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Rejoin On Kick", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport Island (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport Island",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport Island", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Turn On Buso (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Turn On Buso",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Turn On Buso", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Turn On Race V4 (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Turn On Race V4",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Turn On Race V4", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Turn On Race V3 (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Turn On Race V3",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Turn On Race V3", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Set Spawn Point (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Set Spawn Point",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Set Spawn Point", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Anti AFK (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Anti AFK",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Anti AFK", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Reset Teleport (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Reset Teleport",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Reset Teleport", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Bypass TP"] = _G["Bypass TP"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Stop Reset Teleport When Have Legendary (ID: Bypass TP)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Bypass TP", {
+        Title = "Stop Reset Teleport When Have Legendary",
+        Default = _G["Bypass TP"] == true,
+        Callback = function(v)
+            _G["Bypass TP"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartBypass TP"] or _G["startBypass TP"]
+            local stopFn  = _G["StopBypass TP"] or _G["stopBypass TP"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Stop Reset Teleport When Have Legendary", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Fast Attack (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Fast Attack",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Fast Attack", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Bring Mob (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Bring Mob",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Bring Mob", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Spin Position (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Spin Position",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Spin Position", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Reduce Lag Farm Safely (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Reduce Lag Farm Safely",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Reduce Lag Farm Safely", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Anti Cheat Farming (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Anti Cheat Farming",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Anti Cheat Farming", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Start Farm (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Start Farm",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Start Farm", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Farm Material (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Farm Material",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Farm Material", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Farm Mastery (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Farm Mastery",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Farm Mastery", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Z (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Z",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Z", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill X (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill X",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill X", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill C (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill C",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill C", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill V (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill V",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill V", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill F (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill F",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill F", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Get Melee (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Get Melee",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Get Melee", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To Fruit (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To Fruit",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To Fruit", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To Fruit [ Hop Server ] (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To Fruit [ Hop Server ]",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To Fruit [ Hop Server ]", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto New World (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto New World",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto New World", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Third World (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Third World",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Third World", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Factory (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Factory",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Factory", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Pirate Raid (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Pirate Raid",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Pirate Raid", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Elite Hunter (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Elite Hunter",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Elite Hunter", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Hop Server Elite Hunter (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Hop Server Elite Hunter",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Hop Server Elite Hunter", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Touch Pad Haki (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Touch Pad Haki",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Touch Pad Haki", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Rip Indra (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Rip Indra",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Rip Indra", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Soul Reaper (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Soul Reaper",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Soul Reaper", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Pray (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Pray",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Pray", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Try Luck (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Try Luck",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Try Luck", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Dough King (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Dough King",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Dough King", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Darkbeard (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Darkbeard",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Darkbeard", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Quest Dojo Trainer (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Quest Dojo Trainer",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Quest Dojo Trainer", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Upgrade Dragon Talon (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Upgrade Dragon Talon",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Upgrade Dragon Talon", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Attack Hydra Mob And Collect Ember (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Attack Hydra Mob And Collect Ember",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Attack Hydra Mob And Collect Ember", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Collect FireFlower (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Collect FireFlower",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Collect FireFlower", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["ToggleChest"] = _G["ToggleChest"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Chest (ID: ToggleChest)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("ToggleChest", {
+        Title = "Auto Chest",
+        Default = _G["ToggleChest"] == true,
+        Callback = function(v)
+            _G["ToggleChest"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggleChest"] or _G["startToggleChest"]
+            local stopFn  = _G["StopToggleChest"] or _G["stopToggleChest"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Chest", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Stop When Have God's Chalice& Fist Of Darkness (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Stop When Have God's Chalice& Fist Of Darkness",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Stop When Have God's Chalice& Fist Of Darkness", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto UP Observation V2 (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto UP Observation V2",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto UP Observation V2", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Farm Observation (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Farm Observation",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Farm Observation", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Kill Boss (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Kill Boss",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Kill Boss", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Kill All Boss (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Kill All Boss",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Kill All Boss", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Random Devil Fruit (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Random Devil Fruit",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Random Devil Fruit", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Store Fruit (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Store Fruit",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Store Fruit", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Buy Blox Fruit Sniper Shop (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Buy Blox Fruit Sniper Shop",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Buy Blox Fruit Sniper Shop", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Get Fruit In Inventory Low Beli (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Get Fruit In Inventory Low Beli",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Get Fruit In Inventory Low Beli", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Raid (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Raid",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Raid", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Awaken Fruit (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Awaken Fruit",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Awaken Fruit", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Penetrate Rocks When Boat Runs (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Penetrate Rocks When Boat Runs",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Penetrate Rocks When Boat Runs", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Sea Event (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Sea Event",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Sea Event", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Shark (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Shark",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Shark", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Piranha (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Piranha",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Piranha", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Fish Crew (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Fish Crew",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Fish Crew", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Ghost Ship (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Ghost Ship",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Ghost Ship", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Pirate Brigade (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Pirate Brigade",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Pirate Brigade", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Pirate Grand Brigade (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Pirate Grand Brigade",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Pirate Grand Brigade", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Terror Shark (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Terror Shark",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Terror Shark", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Sea Beast (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Sea Beast",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Sea Beast", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To Kitsune Island (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To Kitsune Island",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To Kitsune Island", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Summon Soul EmBer (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Summon Soul EmBer",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Summon Soul EmBer", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Collect Azure Wisp (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Collect Azure Wisp",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Collect Azure Wisp", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Trade Azure Ember (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Trade Azure Ember",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Trade Azure Ember", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To Frozen Dimension (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To Frozen Dimension",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To Frozen Dimension", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Attack Leviathan (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Attack Leviathan",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Attack Leviathan", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Select Use Fruit (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Select Use Fruit",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Select Use Fruit", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Select Use Melee (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Select Use Melee",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Select Use Melee", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Select Use Sword (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Select Use Sword",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Select Use Sword", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Select Use Gun (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Select Use Gun",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Select Use Gun", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Fruit Z (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Fruit Z",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Fruit Z", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Fruit X (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Fruit X",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Fruit X", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Fruit C (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Fruit C",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Fruit C", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Fruit V (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Fruit V",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Fruit V", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Fruit F (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Fruit F",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Fruit F", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Melee Z (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Melee Z",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Melee Z", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Melee X (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Melee X",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Melee X", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Skill Melee C (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Skill Melee C",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Skill Melee C", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Sword And Gun Skill Z (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Sword And Gun Skill Z",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Sword And Gun Skill Z", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Sword And Gun Skill X (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Sword And Gun Skill X",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Sword And Gun Skill X", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["MyToggle"] = _G["MyToggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport Prehistoric Island (ID: MyToggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("MyToggle", {
+        Title = "Teleport Prehistoric Island",
+        Default = _G["MyToggle"] == true,
+        Callback = function(v)
+            _G["MyToggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartMyToggle"] or _G["startMyToggle"]
+            local stopFn  = _G["StopMyToggle"] or _G["stopMyToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport Prehistoric Island", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Event Volcano Island Defense (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Event Volcano Island Defense",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Event Volcano Island Defense", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Kill Aura Golems (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Kill Aura Golems",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Kill Aura Golems", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Collect Bone (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Collect Bone",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Collect Bone", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Collect Egg (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Collect Egg",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Collect Egg", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Use Skill Melee (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Use Skill Melee",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Use Skill Melee", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Use Skill Sword (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Use Skill Sword",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Use Skill Sword", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Use Skill Gun (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Use Skill Gun",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Use Skill Gun", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To The Draco Clan Trial Door (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To The Draco Clan Trial Door",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To The Draco Clan Trial Door", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Upgrade Race V2 (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Upgrade Race V2",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Upgrade Race V2", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Get Cyborg (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Get Cyborg",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Get Cyborg", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Get Ghoul (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Get Ghoul",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Get Ghoul", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: No Frog (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "No Frog",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("No Frog", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport Ancient Clock (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport Ancient Clock",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport Ancient Clock", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Buy Gear (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Buy Gear",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Buy Gear", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Finish Train Quest (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Finish Train Quest",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Finish Train Quest", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To Migare Island (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To Migare Island",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To Migare Island", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To Highest Point (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To Highest Point",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To Highest Point", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To Advanced Fruit Dealer (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To Advanced Fruit Dealer",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To Advanced Fruit Dealer", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Lock Moon And On Race V3 (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Lock Moon And On Race V3",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Lock Moon And On Race V3", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport To Blue Gear (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Teleport To Blue Gear",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport To Blue Gear", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Trial Race (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Trial Race",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Trial Race", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Kill Player After Trial V4 (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Kill Player After Trial V4",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Kill Player After Trial V4", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Trade Bone (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Trade Bone",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Trade Bone", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Buy Legendary Sword (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Buy Legendary Sword",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Buy Legendary Sword", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Buy Haki Color (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Buy Haki Color",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Buy Haki Color", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Hop Server [ Haki color or Legendary Sword] (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Hop Server [ Haki color or Legendary Sword]",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Hop Server [ Haki color or Legendary Sword]", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Get Rainbow Haki (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Get Rainbow Haki",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Get Rainbow Haki", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Skull Guitar (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Skull Guitar",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Skull Guitar", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Get CDK (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Get CDK",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Get CDK", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Yama (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Yama",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Yama", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Tushita (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Tushita",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Tushita", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Saber (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Saber",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Saber", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: ESP Island (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "ESP Island",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("ESP Island", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: ESP Fruit (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "ESP Fruit",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("ESP Fruit", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: ESP Player (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "ESP Player",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("ESP Player", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["MyToggle"] = _G["MyToggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Teleport Player (ID: MyToggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("MyToggle", {
+        Title = "Teleport Player",
+        Default = _G["MyToggle"] == true,
+        Callback = function(v)
+            _G["MyToggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartMyToggle"] or _G["startMyToggle"]
+            local stopFn  = _G["StopMyToggle"] or _G["stopMyToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Teleport Player", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Aimbot (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Aimbot",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Aimbot", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Auto Aimbot Gun (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Auto Aimbot Gun",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Auto Aimbot Gun", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Safe Modes (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Safe Modes",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Safe Modes", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Walk On Water (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Walk On Water",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Walk On Water", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: No Clip (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "No Clip",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("No Clip", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+_G["Toggle"] = _G["Toggle"] or false
+Tabs[ next(Tabs) ] = Tabs[ next(Tabs) ]  -- noop para evitar erro de tabela vazia
+-- Toggle: Change WalkSpeed (ID: Toggle)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddToggle("Toggle", {
+        Title = "Change WalkSpeed",
+        Default = _G["Toggle"] == true,
+        Callback = function(v)
+            _G["Toggle"] = v
+            -- tenta chamar Start/Stop se existirem
+            local startFn = _G["StartToggle"] or _G["startToggle"]
+            local stopFn  = _G["StopToggle"] or _G["stopToggle"]
+            if v and type(startFn)=="function" then pcall(startFn) end
+            if (not v) and type(stopFn)=="function" then pcall(stopFn) end
+            Notify("Change WalkSpeed", v and "Ativado" or "Desativado", 3)
+        end
+    })
+end
+
+
+-- Botoes
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Redeem Code", Callback = function()
+        local f = _G["Redeem_Code"] or _G["OnRedeem_Code"] or _G["DoRedeem_Code"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Redeem Code: "..tostring(err)) end
+        else
+            Notify("Redeem Code", "Funcao nao encontrada: Redeem_Code", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Teleport Old World", Callback = function()
+        local f = _G["Teleport_Old_World"] or _G["OnTeleport_Old_World"] or _G["DoTeleport_Old_World"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Teleport Old World: "..tostring(err)) end
+        else
+            Notify("Teleport Old World", "Funcao nao encontrada: Teleport_Old_World", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Teleport New World", Callback = function()
+        local f = _G["Teleport_New_World"] or _G["OnTeleport_New_World"] or _G["DoTeleport_New_World"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Teleport New World: "..tostring(err)) end
+        else
+            Notify("Teleport New World", "Funcao nao encontrada: Teleport_New_World", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Teleport Third Sea", Callback = function()
+        local f = _G["Teleport_Third_Sea"] or _G["OnTeleport_Third_Sea"] or _G["DoTeleport_Third_Sea"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Teleport Third Sea: "..tostring(err)) end
+        else
+            Notify("Teleport Third Sea", "Funcao nao encontrada: Teleport_Third_Sea", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Black Leg", Callback = function()
+        local f = _G["Black_Leg"] or _G["OnBlack_Leg"] or _G["DoBlack_Leg"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Black Leg: "..tostring(err)) end
+        else
+            Notify("Black Leg", "Funcao nao encontrada: Black_Leg", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Fishman Karate", Callback = function()
+        local f = _G["Fishman_Karate"] or _G["OnFishman_Karate"] or _G["DoFishman_Karate"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Fishman Karate: "..tostring(err)) end
+        else
+            Notify("Fishman Karate", "Funcao nao encontrada: Fishman_Karate", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Electro", Callback = function()
+        local f = _G["Electro"] or _G["OnElectro"] or _G["DoElectro"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Electro: "..tostring(err)) end
+        else
+            Notify("Electro", "Funcao nao encontrada: Electro", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Dragon Breath", Callback = function()
+        local f = _G["Dragon_Breath"] or _G["OnDragon_Breath"] or _G["DoDragon_Breath"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Dragon Breath: "..tostring(err)) end
+        else
+            Notify("Dragon Breath", "Funcao nao encontrada: Dragon_Breath", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "SuperHuman", Callback = function()
+        local f = _G["SuperHuman"] or _G["OnSuperHuman"] or _G["DoSuperHuman"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao SuperHuman: "..tostring(err)) end
+        else
+            Notify("SuperHuman", "Funcao nao encontrada: SuperHuman", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Death Step", Callback = function()
+        local f = _G["Death_Step"] or _G["OnDeath_Step"] or _G["DoDeath_Step"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Death Step: "..tostring(err)) end
+        else
+            Notify("Death Step", "Funcao nao encontrada: Death_Step", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Sharkman Karate", Callback = function()
+        local f = _G["Sharkman_Karate"] or _G["OnSharkman_Karate"] or _G["DoSharkman_Karate"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Sharkman Karate: "..tostring(err)) end
+        else
+            Notify("Sharkman Karate", "Funcao nao encontrada: Sharkman_Karate", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Electric Claw", Callback = function()
+        local f = _G["Electric_Claw"] or _G["OnElectric_Claw"] or _G["DoElectric_Claw"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Electric Claw: "..tostring(err)) end
+        else
+            Notify("Electric Claw", "Funcao nao encontrada: Electric_Claw", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Dragon Talon", Callback = function()
+        local f = _G["Dragon_Talon"] or _G["OnDragon_Talon"] or _G["DoDragon_Talon"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Dragon Talon: "..tostring(err)) end
+        else
+            Notify("Dragon Talon", "Funcao nao encontrada: Dragon_Talon", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "God Human", Callback = function()
+        local f = _G["God_Human"] or _G["OnGod_Human"] or _G["DoGod_Human"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao God Human: "..tostring(err)) end
+        else
+            Notify("God Human", "Funcao nao encontrada: God_Human", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Sanguine Art", Callback = function()
+        local f = _G["Sanguine_Art"] or _G["OnSanguine_Art"] or _G["DoSanguine_Art"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Sanguine Art: "..tostring(err)) end
+        else
+            Notify("Sanguine Art", "Funcao nao encontrada: Sanguine_Art", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Skyjump [ $10,000 Beli ]", Callback = function()
+        local f = _G["Skyjump__10000_Beli_"] or _G["OnSkyjump__10000_Beli_"] or _G["DoSkyjump__10000_Beli_"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Skyjump [ $10,000 Beli ]: "..tostring(err)) end
+        else
+            Notify("Skyjump [ $10,000 Beli ]", "Funcao nao encontrada: Skyjump__10000_Beli_", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Buso Haki [ $25,000 Beli ]", Callback = function()
+        local f = _G["Buso_Haki__25000_Beli_"] or _G["OnBuso_Haki__25000_Beli_"] or _G["DoBuso_Haki__25000_Beli_"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Buso Haki [ $25,000 Beli ]: "..tostring(err)) end
+        else
+            Notify("Buso Haki [ $25,000 Beli ]", "Funcao nao encontrada: Buso_Haki__25000_Beli_", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Observation haki [ $750,000 Beli ]", Callback = function()
+        local f = _G["Observation_haki__750000_Beli_"] or _G["OnObservation_haki__750000_Beli_"] or _G["DoObservation_haki__750000_Beli_"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Observation haki [ $750,000 Beli ]: "..tostring(err)) end
+        else
+            Notify("Observation haki [ $750,000 Beli ]", "Funcao nao encontrada: Observation_haki__750000_Beli_", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Soru [ $100,000 Beli ]", Callback = function()
+        local f = _G["Soru__100000_Beli_"] or _G["OnSoru__100000_Beli_"] or _G["DoSoru__100000_Beli_"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Soru [ $100,000 Beli ]: "..tostring(err)) end
+        else
+            Notify("Soru [ $100,000 Beli ]", "Funcao nao encontrada: Soru__100000_Beli_", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Buy Refund Stat (2500F)", Callback = function()
+        local f = _G["Buy_Refund_Stat_2500F"] or _G["OnBuy_Refund_Stat_2500F"] or _G["DoBuy_Refund_Stat_2500F"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Buy Refund Stat (2500F): "..tostring(err)) end
+        else
+            Notify("Buy Refund Stat (2500F)", "Funcao nao encontrada: Buy_Refund_Stat_2500F", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Buy Reroll Race (3000F)", Callback = function()
+        local f = _G["Buy_Reroll_Race_3000F"] or _G["OnBuy_Reroll_Race_3000F"] or _G["DoBuy_Reroll_Race_3000F"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Buy Reroll Race (3000F): "..tostring(err)) end
+        else
+            Notify("Buy Reroll Race (3000F)", "Funcao nao encontrada: Buy_Reroll_Race_3000F", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Buy Ghoul Race", Callback = function()
+        local f = _G["Buy_Ghoul_Race"] or _G["OnBuy_Ghoul_Race"] or _G["DoBuy_Ghoul_Race"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Buy Ghoul Race: "..tostring(err)) end
+        else
+            Notify("Buy Ghoul Race", "Funcao nao encontrada: Buy_Ghoul_Race", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Buy Cyborg Race (2500F)", Callback = function()
+        local f = _G["Buy_Cyborg_Race_2500F"] or _G["OnBuy_Cyborg_Race_2500F"] or _G["DoBuy_Cyborg_Race_2500F"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Buy Cyborg Race (2500F): "..tostring(err)) end
+        else
+            Notify("Buy Cyborg Race (2500F)", "Funcao nao encontrada: Buy_Cyborg_Race_2500F", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Join Server", Callback = function()
+        local f = _G["Join_Server"] or _G["OnJoin_Server"] or _G["DoJoin_Server"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Join Server: "..tostring(err)) end
+        else
+            Notify("Join Server", "Funcao nao encontrada: Join_Server", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Copy JobId", Callback = function()
+        local f = _G["Copy_JobId"] or _G["OnCopy_JobId"] or _G["DoCopy_JobId"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Copy JobId: "..tostring(err)) end
+        else
+            Notify("Copy JobId", "Funcao nao encontrada: Copy_JobId", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Rejoin Server", Callback = function()
+        local f = _G["Rejoin_Server"] or _G["OnRejoin_Server"] or _G["DoRejoin_Server"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Rejoin Server: "..tostring(err)) end
+        else
+            Notify("Rejoin Server", "Funcao nao encontrada: Rejoin_Server", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Hop Server", Callback = function()
+        local f = _G["Hop_Server"] or _G["OnHop_Server"] or _G["DoHop_Server"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Hop Server: "..tostring(err)) end
+        else
+            Notify("Hop Server", "Funcao nao encontrada: Hop_Server", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Stop Tween", Callback = function()
+        local f = _G["Stop_Tween"] or _G["OnStop_Tween"] or _G["DoStop_Tween"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Stop Tween: "..tostring(err)) end
+        else
+            Notify("Stop Tween", "Funcao nao encontrada: Stop_Tween", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Show Item", Callback = function()
+        local f = _G["Show_Item"] or _G["OnShow_Item"] or _G["DoShow_Item"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Show Item: "..tostring(err)) end
+        else
+            Notify("Show Item", "Funcao nao encontrada: Show_Item", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Open Devil Fruit Shop [ Mirage ]", Callback = function()
+        local f = _G["Open_Devil_Fruit_Shop__Mirage_"] or _G["OnOpen_Devil_Fruit_Shop__Mirage_"] or _G["DoOpen_Devil_Fruit_Shop__Mirage_"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Open Devil Fruit Shop [ Mirage ]: "..tostring(err)) end
+        else
+            Notify("Open Devil Fruit Shop [ Mirage ]", "Funcao nao encontrada: Open_Devil_Fruit_Shop__Mirage_", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Open Devil Fruit Shop", Callback = function()
+        local f = _G["Open_Devil_Fruit_Shop"] or _G["OnOpen_Devil_Fruit_Shop"] or _G["DoOpen_Devil_Fruit_Shop"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Open Devil Fruit Shop: "..tostring(err)) end
+        else
+            Notify("Open Devil Fruit Shop", "Funcao nao encontrada: Open_Devil_Fruit_Shop", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Open Title", Callback = function()
+        local f = _G["Open_Title"] or _G["OnOpen_Title"] or _G["DoOpen_Title"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Open Title: "..tostring(err)) end
+        else
+            Notify("Open Title", "Funcao nao encontrada: Open_Title", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Open Color", Callback = function()
+        local f = _G["Open_Color"] or _G["OnOpen_Color"] or _G["DoOpen_Color"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Open Color: "..tostring(err)) end
+        else
+            Notify("Open Color", "Funcao nao encontrada: Open_Color", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Boost FPS", Callback = function()
+        local f = _G["Boost_FPS"] or _G["OnBoost_FPS"] or _G["DoBoost_FPS"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Boost FPS: "..tostring(err)) end
+        else
+            Notify("Boost FPS", "Funcao nao encontrada: Boost_FPS", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Change Team To Pirates", Callback = function()
+        local f = _G["Change_Team_To_Pirates"] or _G["OnChange_Team_To_Pirates"] or _G["DoChange_Team_To_Pirates"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Change Team To Pirates: "..tostring(err)) end
+        else
+            Notify("Change Team To Pirates", "Funcao nao encontrada: Change_Team_To_Pirates", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Change Team To Marines", Callback = function()
+        local f = _G["Change_Team_To_Marines"] or _G["OnChange_Team_To_Marines"] or _G["DoChange_Team_To_Marines"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Change Team To Marines: "..tostring(err)) end
+        else
+            Notify("Change Team To Marines", "Funcao nao encontrada: Change_Team_To_Marines", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Rain Fruit", Callback = function()
+        local f = _G["Rain_Fruit"] or _G["OnRain_Fruit"] or _G["DoRain_Fruit"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Rain Fruit: "..tostring(err)) end
+        else
+            Notify("Rain Fruit", "Funcao nao encontrada: Rain_Fruit", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Copy discord invite link", Callback = function()
+        local f = _G["Copy_discord_invite_link"] or _G["OnCopy_discord_invite_link"] or _G["DoCopy_discord_invite_link"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Copy discord invite link: "..tostring(err)) end
+        else
+            Notify("Copy discord invite link", "Funcao nao encontrada: Copy_discord_invite_link", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Teleport To Dragon Dojo", Callback = function()
+        local f = _G["Teleport_To_Dragon_Dojo"] or _G["OnTeleport_To_Dragon_Dojo"] or _G["DoTeleport_To_Dragon_Dojo"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Teleport To Dragon Dojo: "..tostring(err)) end
+        else
+            Notify("Teleport To Dragon Dojo", "Funcao nao encontrada: Teleport_To_Dragon_Dojo", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Teleport To Lab", Callback = function()
+        local f = _G["Teleport_To_Lab"] or _G["OnTeleport_To_Lab"] or _G["DoTeleport_To_Lab"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Teleport To Lab: "..tostring(err)) end
+        else
+            Notify("Teleport To Lab", "Funcao nao encontrada: Teleport_To_Lab", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Teleport To Lab", Callback = function()
+        local f = _G["Teleport_To_Lab"] or _G["OnTeleport_To_Lab"] or _G["DoTeleport_To_Lab"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Teleport To Lab: "..tostring(err)) end
+        else
+            Notify("Teleport To Lab", "Funcao nao encontrada: Teleport_To_Lab", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Trade Azure Wisp", Callback = function()
+        local f = _G["Trade_Azure_Wisp"] or _G["OnTrade_Azure_Wisp"] or _G["DoTrade_Azure_Wisp"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Trade Azure Wisp: "..tostring(err)) end
+        else
+            Notify("Trade Azure Wisp", "Funcao nao encontrada: Trade_Azure_Wisp", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Buy Spy", Callback = function()
+        local f = _G["Buy_Spy"] or _G["OnBuy_Spy"] or _G["DoBuy_Spy"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Buy Spy: "..tostring(err)) end
+        else
+            Notify("Buy Spy", "Funcao nao encontrada: Buy_Spy", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Destroy Lava In Prehistoric Island", Callback = function()
+        local f = _G["Destroy_Lava_In_Prehistoric_Island"] or _G["OnDestroy_Lava_In_Prehistoric_Island"] or _G["DoDestroy_Lava_In_Prehistoric_Island"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Destroy Lava In Prehistoric Island: "..tostring(err)) end
+        else
+            Notify("Destroy Lava In Prehistoric Island", "Funcao nao encontrada: Destroy_Lava_In_Prehistoric_Island", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Crafting Volcanic Magnet", Callback = function()
+        local f = _G["Crafting_Volcanic_Magnet"] or _G["OnCrafting_Volcanic_Magnet"] or _G["DoCrafting_Volcanic_Magnet"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Crafting Volcanic Magnet: "..tostring(err)) end
+        else
+            Notify("Crafting Volcanic Magnet", "Funcao nao encontrada: Crafting_Volcanic_Magnet", 4)
+        end
+    end })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddButton({ Title = "Teleport To Trial Door", Callback = function()
+        local f = _G["Teleport_To_Trial_Door"] or _G["OnTeleport_To_Trial_Door"] or _G["DoTeleport_To_Trial_Door"]
+        if type(f)=="function" then
+            local ok, err = pcall(f)
+            if not ok then warn("[AllanHub] erro no botao Teleport To Trial Door: "..tostring(err)) end
+        else
+            Notify("Teleport To Trial Door", "Funcao nao encontrada: Teleport_To_Trial_Door", 4)
+        end
+    end })
+end
+
+
+-- Dropdowns
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_Dropdown"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("Dropdown", {
+        Title = "Select Stats",
+        Values = values,
         Multi = false,
-        Default = options[1],
+        Default = values[1],
         Callback = function(choice)
-            if varName then env[varName] = choice end
-            if setterFnName and type(env[setterFnName]) == "function" then
-                pcall(env[setterFnName], choice)
-            end
+            _G["Dropdown"] = choice
+            local setter = _G["SetDropdown"] or _G["OnDropdown"]
+            if type(setter)=="function" then pcall(setter, choice) end
         end
     })
 end
 
--- slider que escreve em variavel/ chama fn setter
-local function bindSlider(tab, id, title, min, max, default, step, varName, setterFnName)
-    if (varName and env[varName] == nil) and (not setterFnName or type(env[setterFnName]) ~= "function") then
-        return
-    end
-    tab:AddSlider(id, {
-        Title = title,
-        Min = min, Max = max, Default = default, Rounding = 0, Increment = step or 1,
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_Dropdown"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("Dropdown", {
+        Title = "Select Island",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["Dropdown"] = choice
+            local setter = _G["SetDropdown"] or _G["OnDropdown"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_Dropdown"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("Dropdown", {
+        Title = "Select Island",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["Dropdown"] = choice
+            local setter = _G["SetDropdown"] or _G["OnDropdown"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_Dropdown"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("Dropdown", {
+        Title = "Select Island",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["Dropdown"] = choice
+            local setter = _G["SetDropdown"] or _G["OnDropdown"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_DropdownFarm"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("DropdownFarm", {
+        Title = "Select Weapon",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["DropdownFarm"] = choice
+            local setter = _G["SetDropdownFarm"] or _G["OnDropdownFarm"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_DropdownFarm"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("DropdownFarm", {
+        Title = "Select Method Farm",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["DropdownFarm"] = choice
+            local setter = _G["SetDropdownFarm"] or _G["OnDropdownFarm"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_MaterialListMon"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("MaterialListMon", {
+        Title = "Select Material",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["MaterialListMon"] = choice
+            local setter = _G["SetMaterialListMon"] or _G["OnMaterialListMon"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_DropdownFarm"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("DropdownFarm", {
+        Title = "Select Method Farm Mastery",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["DropdownFarm"] = choice
+            local setter = _G["SetDropdownFarm"] or _G["OnDropdownFarm"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_DropdownFarm"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("DropdownFarm", {
+        Title = "Select Melee",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["DropdownFarm"] = choice
+            local setter = _G["SetDropdownFarm"] or _G["OnDropdownFarm"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_Dropdown"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("Dropdown", {
+        Title = "Select Boss",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["Dropdown"] = choice
+            local setter = _G["SetDropdown"] or _G["OnDropdown"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_Dropdown"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("Dropdown", {
+        Title = "Blox Fruit Sniper Shop",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["Dropdown"] = choice
+            local setter = _G["SetDropdown"] or _G["OnDropdown"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_Dropdown"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("Dropdown", {
+        Title = "Select Raid",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["Dropdown"] = choice
+            local setter = _G["SetDropdown"] or _G["OnDropdown"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_zoneselect"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("zoneselect", {
+        Title = "Select Zone",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["zoneselect"] = choice
+            local setter = _G["Setzoneselect"] or _G["Onzoneselect"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_selectthuyen"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("selectthuyen", {
+        Title = "Select Boat",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["selectthuyen"] = choice
+            local setter = _G["Setselectthuyen"] or _G["Onselectthuyen"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_boattween"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("boattween", {
+        Title = "Speed Tween Boat",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["boattween"] = choice
+            local setter = _G["Setboattween"] or _G["Onboattween"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    local values = _G["values_Dropdown"]
+    if type(values)~="table" or #values==0 then values = {"Selecione"} end
+    tab:AddDropdown("Dropdown", {
+        Title = "Select Player PVP",
+        Values = values,
+        Multi = false,
+        Default = values[1],
+        Callback = function(choice)
+            _G["Dropdown"] = choice
+            local setter = _G["SetDropdown"] or _G["OnDropdown"]
+            if type(setter)=="function" then pcall(setter, choice) end
+        end
+    })
+end
+
+
+-- Sliders
+
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddSlider("Slider", {
+        Title = "Point Stats",
+        Min = 1, Max = 500, Default = 50, Increment = 1, Rounding = 0,
         Callback = function(val)
-            if varName then env[varName] = val end
-            if setterFnName and type(env[setterFnName]) == "function" then
-                pcall(env[setterFnName], val)
-            end
+            _G["Slider"] = val
+            local setter = _G["SetSlider"] or _G["OnSlider"]
+            if type(setter)=="function" then pcall(setter, val) end
         end
     })
 end
 
--- ========== Farm ==========
-bindToggle(Tabs.Farm, "AutoFarm", "Auto Farm Level", "AutoFarm", "StartAutoFarm", "StopAutoFarm", false)
-bindToggle(Tabs.Farm, "AutoWorld", "Trocar Mundo Automatico", "AutoWorld", "StartAutoWorld", "StopAutoWorld", true)
-bindToggle(Tabs.Farm, "AutoFarmBone", "Farm Bones", "AutoFarmBone", nil, nil, false)
-bindToggle(Tabs.Farm, "AutoQuest", "Pegar Quest Automatico", "AutoQuest", nil, nil, true)
-bindToggle(Tabs.Farm, "AutoHaki", "Auto Haki (Buso)", "AutoHaki", nil, nil, true)
 
--- Armas padrao
-local weaponOptions = { "Melee", "Sword", "Gun" }
-bindDropdown(Tabs.Farm, "WeaponType", "Tipo de Arma", weaponOptions, "SelectedWeaponType", "SetWeaponType")
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddSlider("Slider", {
+        Title = "Farm Distance",
+        Min = 0, Max = 75, Default = 25, Increment = 1, Rounding = 0,
+        Callback = function(val)
+            _G["Slider"] = val
+            local setter = _G["SetSlider"] or _G["OnSlider"]
+            if type(setter)=="function" then pcall(setter, val) end
+        end
+    })
+end
 
--- ========== Boss ==========
-bindToggle(Tabs.Boss, "AutoBoss", "Auto Farm Boss", "AutoBoss", "StartAutoBoss", "StopAutoBoss", false)
-bindToggle(Tabs.Boss, "AutoQuestBoss", "Pegar Quest de Boss", "AutoQuestBoss", nil, nil, true)
 
--- ========== Raids / Awaken ==========
-bindToggle(Tabs.Raids, "AutoRaid", "Auto Raid", "AutoRaid", "StartAutoRaid", "StopAutoRaid", false)
-bindToggle(Tabs.Raids, "AutoAwaken", "Auto Awakening", "AutoAwaken", "StartAutoAwaken", "StopAutoAwaken", false)
-bindDropdown(Tabs.Raids, "RaidChip", "Raid Chip", {"Flame","Ice","Quake","Light","Dark","String","Rumble","Magma","Buddha","Sand","Phoenix","Dough"}, "SelectedRaid", "SelectRaid")
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddSlider("Slider", {
+        Title = "Select Health [ % ]",
+        Min = 10, Max = 100, Default = 50, Increment = 1, Rounding = 0,
+        Callback = function(val)
+            _G["Slider"] = val
+            local setter = _G["SetSlider"] or _G["OnSlider"]
+            if type(setter)=="function" then pcall(setter, val) end
+        end
+    })
+end
 
--- ========== Frutas ==========
-bindToggle(Tabs.Fruits, "FruitSniper", "Fruit Sniper (loja)", "FruitSniper", "StartFruitSniper", "StopFruitSniper", false)
-bindToggle(Tabs.Fruits, "AutoStoreFruit", "Auto Guardar Frutas", "AutoStoreFruit", nil, nil, true)
-bindToggle(Tabs.Fruits, "AutoBuyFruit", "Auto Comprar Frutas Aleatorias", "AutoBuyFruit", "StartAutoBuyFruit", "StopAutoBuyFruit", false)
-bindToggle(Tabs.Fruits, "GrabSpawnedFruits", "Pegar Frutas no Chao", "GrabSpawnedFruits", "StartGrabFruits", "StopGrabFruits", false)
 
--- ========== Fighting Styles ==========
-bindToggle(Tabs.Fighting, "AutoStyles", "Evoluir Styles ate God Human", "AutoStyles", "StartAutoStyles", "StopAutoStyles", true)
-bindToggle(Tabs.Fighting, "AutoSuperhuman", "Auto Superhuman", "AutoSuperhuman", nil, nil, false)
-bindToggle(Tabs.Fighting, "AutoElectricClaw", "Auto Electric Claw", "AutoElectricClaw", nil, nil, false)
-bindToggle(Tabs.Fighting, "AutoSharkman", "Auto Sharkman Karate", "AutoSharkmanKarate", nil, nil, false)
-bindToggle(Tabs.Fighting, "AutoDeathStep", "Auto Death Step", "AutoDeathStep", nil, nil, false)
-bindToggle(Tabs.Fighting, "AutoGodHuman", "Auto God Human", "AutoGodHuman", nil, nil, false)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddSlider("SliderSpeedBoat", {
+        Title = "Ship Speed",
+        Min = 10, Max = 200, Default = 60, Increment = 1, Rounding = 0,
+        Callback = function(val)
+            _G["SliderSpeedBoat"] = val
+            local setter = _G["SetSliderSpeedBoat"] or _G["OnSliderSpeedBoat"]
+            if type(setter)=="function" then pcall(setter, val) end
+        end
+    })
+end
 
--- ========== Mastery ==========
-bindToggle(Tabs.Mastery, "FarmMasteryMelee", "Farm Mastery (Melee)", "AutoFarmMasteryMelee", nil, nil, false)
-bindToggle(Tabs.Mastery, "FarmMasterySword", "Farm Mastery (Sword)", "AutoFarmMasterySword", nil, nil, false)
-bindToggle(Tabs.Mastery, "FarmMasteryGun", "Farm Mastery (Gun)", "AutoFarmMasteryGun", nil, nil, false)
-bindToggle(Tabs.Mastery, "FarmMasteryFruit", "Farm Mastery (Fruit)", "AutoFarmMasteryFruit", nil, nil, false)
 
--- ========== Swords / Itens Especiais ==========
-bindToggle(Tabs.Swords, "AutoSaber", "Auto Saber", "AutoSaber", "StartAutoSaber", "StopAutoSaber", false)
-bindToggle(Tabs.Swords, "AutoPole", "Auto Pole (First/Second Form)", "AutoPole", nil, nil, false)
-bindToggle(Tabs.Swords, "AutoRengoku", "Auto Rengoku", "AutoRengoku", nil, nil, false)
-bindToggle(Tabs.Swords, "AutoTushita", "Auto Tushita", "AutoTushita", nil, nil, false)
-bindToggle(Tabs.Swords, "AutoYama", "Auto Yama", "AutoYama", nil, nil, false)
-bindToggle(Tabs.Swords, "AutoCDK", "Auto Cursed Dual Katana", "AutoCursedDualKatana", nil, nil, false)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddSlider("Slider", {
+        Title = "Set Azure Ember",
+        Min = 0, Max = 10, Default = 3, Increment = 1, Rounding = 0,
+        Callback = function(val)
+            _G["Slider"] = val
+            local setter = _G["SetSlider"] or _G["OnSlider"]
+            if type(setter)=="function" then pcall(setter, val) end
+        end
+    })
+end
 
--- ========== Materiais ==========
-bindToggle(Tabs.Materials, "AutoMaterial", "Farm Materiais", "AutoMaterial", "StartAutoMaterial", "StopAutoMaterial", false)
-bindDropdown(Tabs.Materials, "MaterialType", "Material", {"Leather","Scrap Metal","Angel Wings","Magma Ore","Fish Tail","Demonic Wisp","Vampire Fang","Mystic Droplet","Dragon Scale","Mini Tusk"}, "SelectedMaterial", "SelectMaterial")
 
--- ========== Teleports ==========
-bindButton(Tabs.Teleport, "Ir para Second Sea", "GoSecondSea", "Viaja automaticamente (requer lvl 700+).")
-bindButton(Tabs.Teleport, "Ir para Third Sea", "GoThirdSea", "Viaja automaticamente (requer lvl 1500+).")
-Tabs.Teleport:AddButton({ Title = "Abandonar Quest", Description = "Abandona a quest atual", Callback = function()
-    if CommF then pcall(function() CommF:InvokeServer("AbandonQuest") end) end
-end})
-
--- ========== Stats ==========
-bindToggle(Tabs.Stats, "AutoStats", "Auto Distribuir Pontos", "AutoStats", "StartAutoStats", "StopAutoStats", true)
-bindDropdown(Tabs.Stats, "StatPriority", "Prioridade de Pontos", {"Melee > Defense", "Defense > Melee", "Balanced"}, "StatsMode", "SetStatsMode")
-bindSlider(Tabs.Stats, "PointBatch", "Pontos por Ciclo", 1, 500, 50, 1, "StatsBatch", "SetStatsBatch")
-
--- ========== Config ==========
-bindToggle(Tabs.Config, "TweenTP", "Teleport (Tween) Suave", "TweenTeleport", nil, nil, true)
-bindToggle(Tabs.Config, "AntiAFK", "Anti AFK", "AntiAFK", "StartAntiAFK", "StopAntiAFK", true)
-bindButton(Tabs.Config, "Recarregar Script", "ReloadScript", "Re-executa rotinas do Hub.")
-
-Notify("Allan Hub", "Fluent GUI carregado (ASCII). Controles exibidos conforme funcoes/variaveis detectadas.", 6)
+do
+    local firstTabKey = (function() for k,_ in pairs(Tabs) do return k end end)()
+    local tab = Tabs[firstTabKey] or Window:AddTab({Title="Main"})
+    tab:AddSlider("Slider", {
+        Title = "Safe Mode At",
+        Min = 0, Max = 400, Default = 150, Increment = 5, Rounding = 0,
+        Callback = function(val)
+            _G["Slider"] = val
+            local setter = _G["SetSlider"] or _G["OnSlider"]
+            if type(setter)=="function" then pcall(setter, val) end
+        end
+    })
+end
