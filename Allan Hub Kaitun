@@ -8311,3 +8311,54 @@ spawn(function()
     end
 end)
 -- >>> FIM FIX <<<
+
+
+-- >>> FIX: AutoFarm já voa para os mobs assim que pega a missão <<<
+spawn(function()
+    while task.wait(0.5) do
+        if getgenv().AutoFarm and getgenv().FarmMode == "Farm Level" then
+            local player = game.Players.LocalPlayer
+            local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not root then continue end
+
+            local gui = player.PlayerGui:FindFirstChild("Main")
+            local questFrame = gui and gui:FindFirstChild("Quest")
+
+            -- Se não tiver quest, pega de novo
+            if questFrame and not questFrame.Visible then
+                pcall(function()
+                    game.ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest)
+                end)
+                task.wait(0.8)
+
+                -- Assim que pegar missão, já vai pro spawn dos mobs
+                if CFrameMon then
+                    fastpos(CFrameMon)
+                end
+            else
+                -- Procura inimigos
+                local target = nil
+                for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                    if mob.Name == NameMon and mob:FindFirstChild("HumanoidRootPart") and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                        target = mob
+                        break
+                    end
+                end
+
+                if target then
+                    -- Se achou inimigo, voa até ele e ataca
+                    topos(target.HumanoidRootPart.CFrame * CFrame.new(0, 15, 0))
+                    EquipWeapon(getgenv().SelectWeapon or "Combat")
+                    game:GetService("VirtualUser"):CaptureController()
+                    game:GetService("VirtualUser"):Button1Down(Vector2.new(1280, 672))
+                else
+                    -- Se não achou nenhum, fica no spawn esperando
+                    if CFrameMon then
+                        topos(CFrameMon)
+                    end
+                end
+            end
+        end
+    end
+end)
+-- >>> FIM FIX <<<
