@@ -1,9 +1,3 @@
-Allan Hub (Fluent UI)
-Core: AutoFarm de Level + Troca de Mundos + Auto Fighting Styles + Auto Stats
-Base visual: Fluent (by dawid-scripts)
-]]]
-
--- ==== UI ====
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local Window = Fluent:CreateWindow({
     Title = "Allan Hub",
