@@ -1,18 +1,14 @@
+-- Allan Hub Configurado (Fluent GUI Limp0)
 local function loadFluent()
-    -- Tenta a URL RAW (conteúdo puro em Lua)
     local ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
     end)
     if ok and lib then return lib end
-
-    -- Fallback para releases/latest
     ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
     end)
     if ok and lib then return lib end
-
-    -- Stub para não quebrar se não carregar
-    warn("Fluent UI não pôde ser carregado. Usando stub básico.")
+    warn("Fluent UI não pôde ser carregado, usando stub.")
     local stub = {}
     function stub:CreateWindow()
         local w = {}
@@ -47,7 +43,16 @@ local Tabs = {
     Stats = Window:AddTab({ Title = "Stats", Icon = "bar-chart-3" }),
     Config = Window:AddTab({ Title = "Config", Icon = "settings" })
 }
--- Fim do header Fluent
+
+-- Toggles globais
+Toggles = {AutoFarm=false,AutoWorld=true,AutoStyles=true,AutoStats=true,AutoHaki=true}
+
+-- Função Notify
+local function Notify(title, content, duration)
+    if Fluent and Fluent.Notify then
+        Fluent:Notify({ Title = title or "Allan Hub", Content = content or "", Duration = duration or 4 })
+    end
+end
 
 
 if not game:IsLoaded() then
@@ -1380,7 +1385,7 @@ function AttackNoCoolDown()
     end
 end
 print("--[[Loaded UI]]--")
-local Fluent = -- GUI original removida
+-- removido GUI antigo
 Window = Fluent:CreateWindow({
     Title = " Allan Hub",
     SubTitle = "By Allan",
@@ -8169,3 +8174,14 @@ if currentTime - lastNotificationTime >= notificationCooldown then
     })
     lastNotificationTime = currentTime
 end
+
+
+-- ==== GUI Controles ====
+Tabs.Farm:AddToggle("AutoFarm",{Title="Auto Farm Level",Default=false,Callback=function(v)Toggles.AutoFarm=v Notify("AutoFarm",v and ( "Ativado") or ("Desativado")) end})
+Tabs.Farm:AddToggle("AutoWorld",{Title="Troca Automática de Mundos",Default=true,Callback=function(v)Toggles.AutoWorld=v end})
+Tabs.Styles:AddToggle("AutoStyles",{Title="Evoluir Fighting Styles até God Human",Default=true,Callback=function(v)Toggles.AutoStyles=v end})
+Tabs.Stats:AddToggle("AutoStats",{Title="Auto Distribuir Pontos (Melee > Defense)",Default=true,Callback=function(v)Toggles.AutoStats=v end})
+Tabs.Config:AddToggle("AutoHaki",{Title="Auto Haki (Buso)",Default=true,Callback=function(v)Toggles.AutoHaki=v end})
+Tabs.Config:AddButton({Title="Reset Quest",Description="Abandona quest atual",Callback=function()game:GetService('ReplicatedStorage').Remotes.CommF_:InvokeServer('AbandonQuest')Notify('Quest','Abandonada.')end})
+
+Notify("Allan Hub","Carregado com sucesso!",6)
