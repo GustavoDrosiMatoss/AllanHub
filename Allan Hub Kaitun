@@ -25,18 +25,6 @@ local function loadFluent()
     return stub
 end
 
-local Fluent = loadFluent()
-local Window = Fluent:CreateWindow({
-    Title = "Allan Hub",
-    SubTitle = "By Allan Gostoso",
-    TabWidth = 120,
-    Size = UDim2.fromOffset(620, 460),
-    Acrylic = true,
-    Theme = "Dark"
-})
-
-local Tabs = {}
-
 Tabs["Tab_Shop"] = Window:AddTab({ Title = "Tab Shop" })
 Tabs["Tab_Status_And_Server"] = Window:AddTab({ Title = "Tab Status And Server" })
 Tabs["Tab_Local_Player"] = Window:AddTab({ Title = "Tab Local Player" })
