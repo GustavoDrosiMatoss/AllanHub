@@ -1,71 +1,177 @@
+-- Farm Lvl – minimal GUI focusing on Auto Farm Level + Fruit features
+-- Feito para ser compatível com nomes/fluxos do Allan Hub (frutas, sniper, store, teleport)
+-- Observação: este script é independente e não requer a lib do Allan Hub.
 
--- AllanHubCopy.lua
--- Script criado copiando as funções do Allan Hub (fornecido pelo usuário).
--- Contém: Auto Farm Level (com CheckQuest e loop), AutoHaki, Equip/UnEquip, Auto Collect Fruit, Auto Spin (Cousin), Auto Store Fruit
--- Algumas partes foram adaptadas levemente para rodar como arquivo independente.
+--== CONFIG ==--
+getgenv().AutoFarm = false           -- Auto Farm Level
+getgenv().AutoClick = false          -- Auto Click (liga/desliga automaticamente com AutoFarm)
+getgenv().TeleportToFruit = false    -- Teleport até frutas no chão
+getgenv().TeleportToFruitHop = false -- Se não achar fruta, troca de servidor
+getgenv().AutoStoreFruit = false     -- Guardar frutas automaticamente no inventário
+getgenv().AutoBuyFruitSniper = false -- Comprar fruta pelo "sniper" (loja)
+getgenv().SelectFruit = "Light-Light"
 
-if not game:IsLoaded() then game.Loaded:Wait() end
+--== UTILS ==--
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local VirtualUser = game:GetService("VirtualUser")
-local TweenService = game:GetService("TweenService")
-local Player = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+local StarterGui = game:GetService("StarterGui")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 
--- Globals (copiados/adaptados)
-getgenv().AutoFarm = false
-getgenv().AutoClick = true
-getgenv().AutoCollectFruit = false
-getgenv().AutoSpinFruit = false
-getgenv().AutoStoreFruit = false
-getgenv().SelectWeapon = "Dark Blade"
+local LocalPlayer = Players.LocalPlayer
 
--- Função AutoHaki (copiada/adaptada). Fonte: Allan Hub. fileciteturn0file0
-local lastHakiTime = 0
-local hakiCooldown = 1
-function AutoHaki()
-    if not game:GetService("Players").LocalPlayer.Character:FindFirstChild("HasBuso") then
-        local currentTime = tick()
-        if currentTime - lastHakiTime >= hakiCooldown then
+local function notify(title, text, dur)
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {Title = title or "Farm Lvl", Text = text or "", Duration = dur or 5})
+    end)
+end
+
+local function topos(cf)
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    hrp.CFrame = cf
+end
+
+-- servidor hop simples
+local function Hop()
+    local tpService = game:GetService("TeleportService")
+    local placeId = game.PlaceId
+    tpService:Teleport(placeId, LocalPlayer)
+end
+
+--== LISTAS DE FRUTA (nomes iguais ao Allan Hub) ==--
+-- Tabela usada pelo "sniper" (loja), mantendo exatamente os nomes do Allan Hub.
+local FruitList = {
+  "Rocket-Rocket", "Spin-Spin", "Blade-Blade", "Spring-Spring", "Bomb-Bomb",
+  "Smoke-Smoke", "Spike-Spike", "Flame-Flame", "Falcon-Falcon", "Ice-Ice",
+  "Sand-Sand", "Dark-Dark", "Diamond-Diamond", "Light-Light", "Rubber-Rubber",
+  "Barrier-Barrier", "Ghost-Ghost", "Magma-Magma", "Quake-Quake", "Buddha-Buddha",
+  "Love-Love", "Spider-Spider", "Sound-Sound", "Phoenix-Phoenix", "Portal-Portal",
+  "Rumble-Rumble", "Pain-Pain", "Blizzard-Blizzard", "Gravity-Gravity",
+  "T-Rex-T-Rex", "Mammoth-Mammoth", "Dough-Dough", "Shadow-Shadow", "Venom-Venom",
+  "Gas-Gas", "Control-Control", "Spirit-Spirit", "Leopard-Leopard", "Yeti-Yeti",
+  "Kitsune-Kitsune", "Dragon-Dragon"
+}
+
+-- Pares {Nome da Tool, Nome do servidor} para armazenar automaticamente (iguais ao Allan Hub)
+local StoreFruitPairs = {
+    {"Rocket Fruit", "Rocket-Rocket"},
+    {"Spin Fruit", "Spin-Spin"},
+    {"Blade Fruit", "Blade-Blade"},
+    {"Spring Fruit", "Spring-Spring"},
+    {"Bomb Fruit", "Bomb-Bomb"},
+    {"Smoke Fruit", "Smoke-Smoke"},
+    {"Spike Fruit", "Spike-Spike"},
+    {"Flame Fruit", "Flame-Flame"},
+    {"Falcon Fruit", "Falcon-Falcon"},
+    {"Ice Fruit", "Ice-Ice"},
+    {"Sand Fruit", "Sand-Sand"},
+    {"Dark Fruit", "Dark-Dark"},
+    {"Diamond Fruit", "Diamond-Diamond"},
+    {"Light Fruit", "Light-Light"},
+    {"Rubber Fruit", "Rubber-Rubber"},
+    {"Barrier Fruit", "Barrier-Barrier"},
+    {"Ghost Fruit", "Ghost-Ghost"},
+    {"Magma Fruit", "Magma-Magma"},
+    {"Quake Fruit", "Quake-Quake"},
+    {"Buddha Fruit", "Buddha-Buddha"},
+    {"Love Fruit", "Love-Love"},
+    {"Spider Fruit", "Spider-Spider"},
+    {"Sound Fruit", "Sound-Sound"},
+    {"Phoenix Fruit", "Phoenix-Phoenix"},
+    {"Portal Fruit", "Portal-Portal"},
+    {"Rumble Fruit", "Rumble-Rumble"},
+    {"Pain Fruit", "Pain-Pain"},
+    {"Blizzard Fruit", "Blizzard-Blizzard"},
+    {"Gravity Fruit", "Gravity-Gravity"},
+    {"Mammoth Fruit", "Mammoth-Mammoth"},
+    {"T-Rex Fruit", "T-Rex-T-Rex"},
+    {"Dough Fruit", "Dough-Dough"},
+    {"Shadow Fruit", "Shadow-Shadow"},
+    {"Venom Fruit", "Venom-Venom"},
+    {"Gas Fruit", "Gas-Gas"},
+    {"Control Fruit", "Control-Control"},
+    {"Spirit Fruit", "Spirit-Spirit"},
+    {"Leopard Fruit", "Leopard-Leopard"},
+    {"Yeti Fruit", "Yeti-Yeti"},
+    {"Kitsune Fruit", "Kitsune-Kitsune"},
+    {"Dragon Fruit", "Dragon-Dragon"}
+}
+
+--== AUTO CLICK (liga junto com AutoFarm) ==--
+task.spawn(function()
+    while task.wait(0.1) do
+        if getgenv().AutoFarm then
+            -- liga autoclick enquanto farmar
+            getgenv().AutoClick = true
             pcall(function()
-                ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
+                VirtualInputManager:SendMouseButtonEvent(0,0,0,true,game,0)
+                VirtualInputManager:SendMouseButtonEvent(0,0,0,false,game,0)
             end)
-            lastHakiTime = currentTime
+        else
+            getgenv().AutoClick = false
+            task.wait(0.25)
         end
     end
-end
+end)
 
--- Equip/UnEquip funções (adaptação). Trechos inspirados no Allan Hub. fileciteturn0file0
-local lastUnEquipTime = 0
-local unEquipCooldown = 0.5
-function UnEquipWeapon(Weapon)
-    local currentTime = tick()
-    if currentTime - lastUnEquipTime >= unEquipCooldown then
-        if game.Players.LocalPlayer.Character:FindFirstChild(Weapon) then
-            getgenv().NotAutoEquip = true
-            game.Players.LocalPlayer.Character[Weapon].Parent = game.Players.LocalPlayer.Backpack
-            getgenv().NotAutoEquip = false
-        end
-        lastUnEquipTime = currentTime
+--== AUTO STORE FRUIT (iguais aos pares do Allan Hub) ==--
+task.spawn(function()
+    while task.wait(0.2) do
+        if not getgenv().AutoStoreFruit then continue end
+        pcall(function()
+            local char = LocalPlayer.Character
+            local backpack = LocalPlayer.Backpack
+            for _, pair in ipairs(StoreFruitPairs) do
+                local toolName, serverKey = pair[1], pair[2]
+                if (char and char:FindFirstChild(toolName)) or (backpack and backpack:FindFirstChild(toolName)) then
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("StoreFruit", serverKey, backpack:FindFirstChild(toolName))
+                end
+            end
+        end)
     end
-end
+end)
 
-local lastEquipTime = 0
-local equipCooldown = 0.5
-function EquipWeapon(ToolSe)
-    local currentTime = tick()
-    if currentTime - lastEquipTime >= equipCooldown then        
-        if not getgenv().NotAutoEquip then
-            local tool = game.Players.LocalPlayer.Backpack:FindFirstChild(ToolSe)
-            if tool then
-                game.Players.LocalPlayer.Character.Humanoid:EquipTool(tool)
+--== TELEPORT PARA FRUTAS + HOP (igual fluxo do Allan Hub) ==--
+task.spawn(function()
+    while task.wait(0.5) do
+        if getgenv().TeleportToFruit and getgenv().TeleportToFruitHop then
+            local foundFruit = false
+            for _, v in ipairs(Workspace:GetChildren()) do
+                if v:IsA("Model") and string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+                    topos(v.Handle.CFrame)
+                    foundFruit = true
+                    break
+                end
+            end
+            if not foundFruit then
+                task.wait(1)
+                notify("Server Hop.", "")
+                Hop()
+            end
+        elseif getgenv().TeleportToFruit then
+            for _, v in ipairs(Workspace:GetChildren()) do
+                if v:IsA("Model") and string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+                    topos(v.Handle.CFrame)
+                    break
+                end
             end
         end
-        lastEquipTime = currentTime
     end
-end
+end)
 
--- CheckQuest (grande função de mapeamento de levels para quests) - copiado/encerrado/adaptado do Allan Hub. fileciteturn0file0
+--== FRUIT SNIPER (loja) ==--
+task.spawn(function()
+    while task.wait(1) do
+        if getgenv().AutoBuyFruitSniper then
+            pcall(function()
+                ReplicatedStorage.Remotes.CommF_:InvokeServer("GetFruits")
+                ReplicatedStorage.Remotes.CommF_:InvokeServer("PurchaseRawFruit", getgenv().SelectFruit)
+            end)
+        end
+    end
+end)
+
 function CheckQuest() 
     MyLevel = game:GetService("Players").LocalPlayer.Data.Level.Value
     if World1 then
@@ -698,180 +804,181 @@ function CheckQuest()
         end
     end
 end
-spawn(function()
-    local canRun = true
-    while task.wait(0.5) do
-        if getgenv().AutoFarm then
-            if canRun then
-                canRun = false
-                spawn(function()
-                    local player = game:GetService("Players").LocalPlayer
-                    if not player or not player.Character then
-                        canRun = true
-                        return
-                    end
-                    local questTitle = player.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
-                    local questVisible = player.PlayerGui.Main.Quest.Visible
-                    local humanoidRoot = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                    -- Abandona quest se não bate com o nome do mon atual
-                    if not string.find(questTitle or "", NameMon or "") then
-                        getgenv().StartMagnet = false
-                        pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest") end)
-                    end
-                    if not questVisible then
-                        getgenv().StartMagnet = false
-                        CheckQuest()
-                        -- Teleporta para NPC (usar topos/tween conforme disponível)
-                        if humanoidRoot and CFrameQuest then
-                            humanoidRoot.CFrame = CFrameQuest
-                        end
-                        if humanoidRoot and (humanoidRoot.Position - CFrameQuest.Position).Magnitude <= 20 then
-                            pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", NameQuest, LevelQuest) end)
-                        end
-                    elseif questVisible then
-                        CheckQuest()
-                        local enemies = workspace.Enemies:GetChildren()
-                        for _, v in pairs(enemies) do
-                            if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
-                                if v.Humanoid.Health > 0 and v.Name == Mon then
-                                    if string.find(game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, NameMon) then
-                                        repeat
-                                            task.wait(0.1)
-                                            AutoHaki()
-                                            EquipWeapon(getgenv().SelectWeapon)
-                                            PosMon = v.HumanoidRootPart.CFrame
-                                            -- move para o mob (topos usado no hub; aqui usamos CFrame direto)
-                                            if v and v.HumanoidRootPart then
-                                                pcall(function()
-                                                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = v.HumanoidRootPart.CFrame * CFrame.new(0,0,5)
-                                                end)
-                                            end
-                                            v.HumanoidRootPart.CanCollide = false
-                                            v.Humanoid.WalkSpeed = 0
-                                            v.Head.CanCollide = false
-                                            getgenv().StartMagnet = true
-                                            if getgenv().AutoClick then
-                                                -- emular clique
-                                                VirtualUser:CaptureController()
-                                                VirtualUser:ClickButton1(Vector2.new(0,0))
-                                            end
-                                        until not getgenv().AutoFarm or not v.Parent or v.Humanoid.Health <= 0 or not game:GetService("Players").LocalPlayer.PlayerGui.Main.Quest.Visible
-                                    else
-                                        getgenv().StartMagnet = false
-                                        pcall(function() ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest") end)
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end)
-                task.wait(0.5)
-                canRun = true
+-- Abandonar/pegar quest conforme alvo (mantém padrão de checagem do Allan Hub)
+local function ensureQuest(targetMon, questName, questCF)
+    local gui = LocalPlayer.PlayerGui:FindFirstChild("Main")
+    local needQuest = true
+    if gui and gui:FindFirstChild("Quest") and gui.Quest:FindFirstChild("Container")
+        and gui.Quest.Container:FindFirstChild("QuestTitle")
+        and gui.Quest.Container.QuestTitle:FindFirstChild("Title") then
+        local txt = gui.Quest.Container.QuestTitle.Title.Text
+        local vis = gui.Quest.Visible
+        if vis and string.find(txt, targetMon) then
+            needQuest = false
+        end
+    end
+    if needQuest then
+        ReplicatedStorage.Remotes.CommF_:InvokeServer("AbandonQuest")
+        topos(questCF)
+        task.wait(0.5)
+        ReplicatedStorage.Remotes.CommF_:InvokeServer("StartQuest", questName, 1)
+        task.wait(0.2)
+    end
+end
+
+-- Teleporta e atrai mobs (versão simples)
+local function farmMob(monName, mobCF)
+    local enemies = Workspace:FindFirstChild("Enemies")
+    if not enemies then return end
+    topos(mobCF + Vector3.new(0,3,0))
+    for _, m in ipairs(enemies:GetChildren()) do
+        if m.Name == monName and m:FindFirstChild("Humanoid") and m.Humanoid.Health > 0 then
+            if m:FindFirstChild("HumanoidRootPart") then
+                m.HumanoidRootPart.CanCollide = false
+                m.Humanoid.WalkSpeed = 0
+                m.Humanoid.JumpPower = 0
+                m.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-2)
             end
         end
     end
-end)
+end
 
--- Auto Store Fruit (copiado da lista de frutas e lógica de armazenamento). Fonte: Allan Hub. fileciteturn0file5turn0file11
-spawn(function()
-    while task.wait(0.2) do
-        if getgenv().AutoStoreFruit then
-            pcall(function()
-                local player = game:GetService("Players").LocalPlayer
-                local character = player.Character
-                local backpack = player.Backpack
-                local fruits = {
-                    {"Rocket Fruit", "Rocket-Rocket"},
-                    {"Spin Fruit", "Spin-Spin"},
-                    {"Blade Fruit", "Blade-Blade"},
-                    {"Spring Fruit", "Spring-Spring"},
-                    {"Bomb Fruit", "Bomb-Bomb"},
-                    {"Smoke Fruit", "Smoke-Smoke"},
-                    {"Spike Fruit", "Spike-Spike"},
-                    {"Flame Fruit", "Flame-Flame"},
-                    {"Falcon Fruit", "Falcon-Falcon"},
-                    {"Ice Fruit", "Ice-Ice"},
-                    {"Sand Fruit", "Sand-Sand"},
-                    {"Dark Fruit", "Dark-Dark"},
-                    {"Diamond Fruit", "Diamond-Diamond"},
-                    {"Light Fruit", "Light-Light"},
-                    {"Rubber Fruit", "Rubber-Rubber"},
-                    {"Barrier Fruit", "Barrier-Barrier"},
-                    {"Ghost Fruit", "Ghost-Ghost"},
-                    {"Magma Fruit", "Magma-Magma"},
-                    {"Quake Fruit", "Quake-Quake"},
-                    {"Buddha Fruit", "Buddha-Buddha"},
-                    {"Love Fruit", "Love-Love"},
-                    {"Spider Fruit", "Spider-Spider"},
-                    {"Sound Fruit", "Sound-Sound"},
-                    {"Phoenix Fruit", "Phoenix-Phoenix"},
-                    {"Portal Fruit", "Portal-Portal"},
-                    {"Rumble Fruit", "Rumble-Rumble"},
-                    {"Pain Fruit", "Pain-Pain"},
-                    {"Blizzard Fruit", "Blizzard-Blizzard"},
-                    {"Gravity Fruit", "Gravity-Gravity"},
-                    {"Mammoth Fruit", "Mammoth-Mammoth"},
-                    {"T-Rex Fruit", "T-Rex-T-Rex"},
-                    {"Dough Fruit", "Dough-Dough"},
-                    {"Shadow Fruit", "Shadow-Shadow"},
-                    {"Venom Fruit", "Venom-Venom"},
-                    {"Gas Fruit", "Gas-Gas"},
-                    {"Control Fruit", "Control-Control"},
-                    {"Spirit Fruit", "Spirit-Spirit"},
-                    {"Leopard Fruit", "Leopard-Leopard"},
-                    {"Yeti Fruit", "Yeti-Yeti"},
-                    {"Kitsune Fruit", "Kitsune-Kitsune"},
-                    {"Dragon Fruit", "Dragon-Dragon"},
-                }
-                for _, fruit in ipairs(fruits) do
-                    local fruitName, serverName = fruit[1], fruit[2]
-                    if character:FindFirstChild(fruitName) or backpack:FindFirstChild(fruitName) then
-                        pcall(function()
-                            ReplicatedStorage.Remotes.CommF_:InvokeServer("StoreFruit", serverName, backpack:FindFirstChild(fruitName))
-                        end)
-                    end
-                end
-            end)
-        end
-    end
-end)
-
--- Auto Collect Fruit (pega frutas do chão) - inspirado no Allan Hub. fileciteturn0file2
-spawn(function()
+-- LOOP principal do AutoFarm
+task.spawn(function()
     while task.wait(0.5) do
-        if getgenv().AutoCollectFruit then
-            local player = game.Players.LocalPlayer
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                for _, v in pairs(workspace:GetChildren()) do
-                    if v:IsA("Model") and string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
-                        pcall(function() hrp.CFrame = v.Handle.CFrame end)
-                    end
-                    if v:IsA("Tool") and string.find(string.lower(v.Name), "fruit") then
-                        pcall(function()
-                            if v:FindFirstChild("Handle") then
-                                v.Handle.CFrame = hrp.CFrame
-                            else
-                                v.CFrame = hrp.CFrame
-                            end
-                        end)
-                    end
-                end
+        if not getgenv().AutoFarm then continue end
+        pcall(function()
+            local lv = (LocalPlayer:FindFirstChild("Data") and LocalPlayer.Data.Level and LocalPlayer.Data.Level.Value) or 1
+            local data = questForLevel(lv)
+            if not data then
+                notify("Farm Lvl", "Sem mapeamento de level para "..tostring(lv))
+                return
             end
-        end
+            ensureQuest(data.mon, data.quest, data.questCFrame)
+            farmMob(data.mon, data.mobCFrame)
+        end)
     end
 end)
 
--- Auto Spin Fruit (gacha) - usa Cousin Buy como no Allan Hub. Fonte: Allan Hub. fileciteturn0file1
-spawn(function()
-    while task.wait(10) do
-        if getgenv().AutoSpinFruit then
-            pcall(function()
-                ReplicatedStorage.Remotes.CommF_:InvokeServer("Cousin", "Buy")
-            end)
-        end
-    end
-end)
+--== GUI SUPER SIMPLES ==--
+do
+    local sg = Instance.new("ScreenGui")
+    sg.Name = "FarmLvlUI"
+    sg.ResetOnSpawn = false
+    sg.Parent = game:GetService("CoreGui")
 
-print("AllanHubCopy.lua carregado — funções principais copiadas do Allan Hub. Ajuste toggles globais para ativar.")
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 320, 0, 240)
+    frame.Position = UDim2.new(0, 50, 0, 100)
+    frame.BackgroundColor3 = Color3.fromRGB(20,20,25)
+    frame.BorderSizePixel = 0
+    frame.Parent = sg
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, -10, 0, 28)
+    title.Position = UDim2.new(0, 10, 0, 6)
+    title.BackgroundTransparency = 1
+    title.Text = "Farm Lvl (AutoFarm + Frutas)"
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 14
+    title.TextColor3 = Color3.fromRGB(255,255,255)
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = frame
+
+    local btnFarm = Instance.new("TextButton")
+    btnFarm.Size = UDim2.new(0, 140, 0, 28)
+    btnFarm.Position = UDim2.new(0, 10, 0, 44)
+    btnFarm.BackgroundColor3 = Color3.fromRGB(35,35,45)
+    btnFarm.Text = "Auto Farm Level: OFF"
+    btnFarm.Font = Enum.Font.Gotham
+    btnFarm.TextSize = 12
+    btnFarm.TextColor3 = Color3.fromRGB(255,255,255)
+    btnFarm.Parent = frame
+    btnFarm.MouseButton1Click:Connect(function()
+        getgenv().AutoFarm = not getgenv().AutoFarm
+        btnFarm.Text = "Auto Farm Level: "..(getgenv().AutoFarm and "ON" or "OFF")
+        notify("AutoClick", getgenv().AutoFarm and "Ativado junto com Farm" or "Desativado")
+    end)
+
+    local btnStore = Instance.new("TextButton")
+    btnStore.Size = UDim2.new(0, 160, 0, 28)
+    btnStore.Position = UDim2.new(0, 10, 0, 80)
+    btnStore.BackgroundColor3 = Color3.fromRGB(35,35,45)
+    btnStore.Text = "Auto Store Fruit: OFF"
+    btnStore.Font = Enum.Font.Gotham
+    btnStore.TextSize = 12
+    btnStore.TextColor3 = Color3.fromRGB(255,255,255)
+    btnStore.Parent = frame
+    btnStore.MouseButton1Click:Connect(function()
+        getgenv().AutoStoreFruit = not getgenv().AutoStoreFruit
+        btnStore.Text = "Auto Store Fruit: "..(getgenv().AutoStoreFruit and "ON" or "OFF")
+    end)
+
+    local btnTP = Instance.new("TextButton")
+    btnTP.Size = UDim2.new(0, 160, 0, 28)
+    btnTP.Position = UDim2.new(0, 10, 0, 116)
+    btnTP.BackgroundColor3 = Color3.fromRGB(35,35,45)
+    btnTP.Text = "Teleport Fruit: OFF"
+    btnTP.Font = Enum.Font.Gotham
+    btnTP.TextSize = 12
+    btnTP.TextColor3 = Color3.fromRGB(255,255,255)
+    btnTP.Parent = frame
+    btnTP.MouseButton1Click:Connect(function()
+        getgenv().TeleportToFruit = not getgenv().TeleportToFruit
+        btnTP.Text = "Teleport Fruit: "..(getgenv().TeleportToFruit and "ON" or "OFF")
+    end)
+
+    local btnTPHop = Instance.new("TextButton")
+    btnTPHop.Size = UDim2.new(0, 140, 0, 28)
+    btnTPHop.Position = UDim2.new(0, 180, 0, 116)
+    btnTPHop.BackgroundColor3 = Color3.fromRGB(35,35,45)
+    btnTPHop.Text = "Hop: OFF"
+    btnTPHop.Font = Enum.Font.Gotham
+    btnTPHop.TextSize = 12
+    btnTPHop.TextColor3 = Color3.fromRGB(255,255,255)
+    btnTPHop.Parent = frame
+    btnTPHop.MouseButton1Click:Connect(function()
+        getgenv().TeleportToFruitHop = not getgenv().TeleportToFruitHop
+        btnTPHop.Text = "Hop: "..(getgenv().TeleportToFruitHop and "ON" or "OFF")
+    end)
+
+    local lblDrop = Instance.new("TextLabel")
+    lblDrop.Size = UDim2.new(1, -20, 0, 20)
+    lblDrop.Position = UDim2.new(0, 10, 0, 152)
+    lblDrop.BackgroundTransparency = 1
+    lblDrop.Text = "Sniper Fruit (SelectFruit):"
+    lblDrop.Font = Enum.Font.Gotham
+    lblDrop.TextSize = 12
+    lblDrop.TextColor3 = Color3.fromRGB(255,255,255)
+    lblDrop.TextXAlignment = Enum.TextXAlignment.Left
+    lblDrop.Parent = frame
+
+    local drop = Instance.new("TextBox")
+    drop.Size = UDim2.new(1, -20, 0, 24)
+    drop.Position = UDim2.new(0, 10, 0, 174)
+    drop.BackgroundColor3 = Color3.fromRGB(25,25,35)
+    drop.Text = getgenv().SelectFruit
+    drop.Font = Enum.Font.Gotham
+    drop.TextSize = 12
+    drop.TextColor3 = Color3.fromRGB(255,255,255)
+    drop.Parent = frame
+    drop.FocusLost:Connect(function()
+        getgenv().SelectFruit = drop.Text
+    end)
+
+    local btnBuy = Instance.new("TextButton")
+    btnBuy.Size = UDim2.new(0, 140, 0, 28)
+    btnBuy.Position = UDim2.new(0, 10, 0, 204)
+    btnBuy.BackgroundColor3 = Color3.fromRGB(35,35,45)
+    btnBuy.Text = "Auto Buy: OFF"
+    btnBuy.Font = Enum.Font.Gotham
+    btnBuy.TextSize = 12
+    btnBuy.TextColor3 = Color3.fromRGB(255,255,255)
+    btnBuy.Parent = frame
+    btnBuy.MouseButton1Click:Connect(function()
+        getgenv().AutoBuyFruitSniper = not getgenv().AutoBuyFruitSniper
+        btnBuy.Text = "Auto Buy: "..(getgenv().AutoBuyFruitSniper and "ON" or "OFF")
+    end)
+end
+
+notify("Farm Lvl", "Carregado. Use o botão para iniciar o Auto Farm (AutoClick liga junto).")
