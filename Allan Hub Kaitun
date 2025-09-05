@@ -1,7 +1,3 @@
--- Allan Hub Configurado - Fluent (FINAL+LOOPS COMPATIVEIS)
--- GUI 1:1 com Fluent. Toggles tentam mapear para flags do script original (shared/getgenv/_G).
--- Botoes chamam funcoes se existirem. Loops do original serao carregados abaixo (inline).
-
 local function loadFluent()
     local ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
