@@ -1,3 +1,7 @@
+-- Allan Hub Configurado - Fluent (FINAL+LOOPS COMPATIVEIS)
+-- GUI 1:1 com Fluent. Toggles tentam mapear para flags do script original (shared/getgenv/_G).
+-- Botoes chamam funcoes se existirem. Loops do original serao carregados abaixo (inline).
+
 local function loadFluent()
     local ok, lib = pcall(function()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
@@ -25,6 +29,9 @@ local function loadFluent()
     return stub
 end
 
+-- Removido GUI duplicada de Allan Gostoso
+local Tabs = {}
+
 Tabs["Tab_Shop"] = Window:AddTab({ Title = "Tab Shop" })
 Tabs["Tab_Status_And_Server"] = Window:AddTab({ Title = "Tab Status And Server" })
 Tabs["Tab_Local_Player"] = Window:AddTab({ Title = "Tab Local Player" })
@@ -50,7 +57,37 @@ local function _normalize(s)
     return s
 end
 
+
+-- Sistema de salvar/configurações
+local HttpService = game:GetService("HttpService")
+local configFile = "AllanHubConfig.json"
+
+local function SaveConfig()
+    local success, data = pcall(function()
+        return HttpService:JSONEncode(_G)
+    end)
+    if success then
+        writefile(configFile, data)
+    end
+end
+
+local function LoadConfig()
+    if isfile(configFile) then
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(readfile(configFile))
+        end)
+        if success and type(data) == "table" then
+            for k, v in pairs(data) do
+                _G[k] = v
+            end
+        end
+    end
+end
+
+LoadConfig()
+
 local function setflag(name, v)
+    -- Ajustado para salvar automaticamente
     if type(name)~="string" then return end
     if getgenv then pcall(function() getgenv()[name] = v end) end
     pcall(function() shared[name] = v end)
