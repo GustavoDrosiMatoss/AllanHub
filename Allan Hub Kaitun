@@ -130,7 +130,7 @@ function CheckQuest()
             NameQuest = "JungleQuest"
             NameMon = "Gorilla"
             CFrameQuest = CFrame.new(-1598.08911, 35.5501175, 153.377838, 0, 0, 1, 0, 1, -0, -1, 0, 0)
-            CFrameMon = CFrame.new(-1129.8836669921875, 40.46354675292969, -525.4237060546875)
+            CFrameMon = CFrame.new(-1249.18994, 8.22999573, -456.190002, 0, 0, -1, 0, 1, 0, 1, 0, 0)
         elseif MyLevel >= 30 and MyLevel <= 39 then
             Mon = "Pirate"
             LevelQuest = 1
