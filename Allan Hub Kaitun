@@ -31,6 +31,33 @@ end
 
 -- Removido GUI duplicada de Allan Gostoso
 local Tabs = {}
+
+-- [[ Single Fluent Window & Tabs bootstrap ]]
+local Fluent = loadFluent()
+local -- [[disabled]] duplicate Window creation
+
+local function EnsureTab(key, title)
+    if not Tabs[key] then
+        Tabs[key] = Window:AddTab({ Title = title or key:gsub('_',' '), Icon = '' })
+    end
+end
+EnsureTab("Tab_Shop", "Shop")
+EnsureTab("Tab_Status_And_Server", "Status & Server")
+EnsureTab("Tab_Local_Player", "Local Player")
+EnsureTab("Setting_Farm", "Settings: Farm")
+EnsureTab("Tab_Farming", "Farming")
+EnsureTab("Tab_Stack_Farm", "Stack Farm")
+EnsureTab("Tab_Farming_Other", "Farming: Other")
+EnsureTab("Tab_Fruit_And_Raid", "Fruit & Raid")
+EnsureTab("Tab_Sea_Event", "Sea Event")
+EnsureTab("Tab_Setting_Select_Skill", "Skill Settings")
+EnsureTab("Tab_Volcanic_Event", "Volcanic Event")
+EnsureTab("Tab_Upgrade_Race", "Upgrade Race")
+EnsureTab("Tab_Get_Items_And_Buy", "Get Items & Buy")
+EnsureTab("Tab_ESP", "ESP")
+EnsureTab("Tab_PVP", "PVP")
+Shop = Tabs["Tab_Shop"] -- alias for later code that expects `Shop`
+
 -- [Removido] Bloco de Tabs antecipado (antes de Window existir)
 -- Helpers e mapeamento de flags
 
@@ -1825,7 +1852,7 @@ function AttackNoCoolDown()
     end
 end
 print("--[[Loaded UI]]--")
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+-- [[disabled]] duplicate Fluent load
 Window = Fluent:CreateWindow({
     Title = " Allan Hub",
     SubTitle = "By Allan",
@@ -1835,7 +1862,7 @@ Window = Fluent:CreateWindow({
     Theme = "Luffy",
     MinimizeKey = Enum.KeyCode.LeftControl 
 })
-Shop = Window:AddTab({ Title = "Tab Shop", Icon = "" })
+Shop = Tabs["Tab_Shop"] -- reusing existing tab
 sex = {
     "WildDares",
     "BossBuild",
