@@ -303,7 +303,7 @@ function CheckQuest()
             NameQuest = "FountainQuest"
             NameMon = "Galley Captain"
             CFrameQuest = CFrame.new(5259.81982, 37.3500175, 4050.0293, 0.087131381, 0, 0.996196866, 0, 1, 0, -0.996196866, 0, 0.087131381)
-            CFrameMon = CFrame.new(5922.37207, 58.9349976, 4765.84082, -0.939700961, 0, -0.341998369, 0, 1, 0, 0.341998369, 0, -0.939700961)
+            CFrameMon = CFrame.new(5584.0078125, 60.3489990234375, 4856.39892578125)
         end
     elseif World2 then
         if MyLevel >= 700 and MyLevel <= 724 then
