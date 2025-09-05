@@ -671,8 +671,8 @@ function CheckQuest()
             LevelQuest = 1
             NameQuest = "ColosseumQuest"
             NameMon = "Toga Warrior"
-            CFrameQuest = CFrame.new(-1356.95898, 7.94599915, -3590.60596, -0.587748766, 0, -0.809043527, 0, 1, 0, 0.809043527, 0, -0.587748766)
-            CFrameMon = CFrame.new (-1228.08704, 7.94599915, -3051.79102, -0.808997631, 0, 0.587812185, 0, 1, 0, -0.587812185, 0, -0.808997631)
+            CFrameQuest = CFrame.new(-1580.04663, 6.35000277, -2986.47534, -0.515037298, 0, -0.857167721, 0, 1, 0, 0.857167721, 0, -0.515037298)
+            CFrameMon = CFrame.new (-1820.21484375, 51.68385696411133, -2740.6650390625)
         elseif MyLevel >= 275 and MyLevel <= 299 then
             Mon = "Gladiator"
             LevelQuest = 2
