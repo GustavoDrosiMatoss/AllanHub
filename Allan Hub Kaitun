@@ -1,488 +1,30 @@
--- Allan Hub Configurado - Fluent (FINAL+LOOPS COMPATIVEIS)
--- GUI 1:1 com Fluent. Toggles tentam mapear para flags do script original (shared/getgenv/_G).
--- Botoes chamam funcoes se existirem. Loops do original serao carregados abaixo (inline).
+-- Sistema de salvar/configurações
+local HttpService = game:GetService("HttpService")
+local configFile = "AllanHubConfig.json"
 
-local function loadFluent()
-    local ok, lib = pcall(function()
-        return loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/main/Fluent.lua"))()
+local function SaveConfig()
+    local success, data = pcall(function()
+        return HttpService:JSONEncode(_G)
     end)
-    if ok and lib then return lib end
-    ok, lib = pcall(function()
-        return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-    end)
-    if ok and lib then return lib end
-    local stub = {}
-    function stub:CreateWindow()
-        local w = {}
-        function w:AddTab(_) 
-            return {
-                AddToggle=function()end,
-                AddButton=function()end,
-                AddDropdown=function()end,
-                AddSlider=function()end
-            }
-        end
-        return w
+    if success then
+        writefile(configFile, data)
     end
-    function stub:Notify(_) end
-    stub.Options = {}
-    return stub
 end
 
-local Fluent = loadFluent()
-local Window = Fluent:CreateWindow({
-    Title = "Allan Hub",
-    SubTitle = "By Allan Gostoso",
-    TabWidth = 120,
-    Size = UDim2.fromOffset(620, 460),
-    Acrylic = true,
-    Theme = "Dark"
-})
-
-local Tabs = {}
-
-Tabs["Tab_Shop"] = Window:AddTab({ Title = "Tab Shop" })
-Tabs["Tab_Status_And_Server"] = Window:AddTab({ Title = "Tab Status And Server" })
-Tabs["Tab_Local_Player"] = Window:AddTab({ Title = "Tab Local Player" })
-Tabs["Setting_Farm"] = Window:AddTab({ Title = "Setting Farm" })
-Tabs["Tab_Farming"] = Window:AddTab({ Title = "Tab Farming" })
-Tabs["Tab_Stack_Farm"] = Window:AddTab({ Title = "Tab Stack Farm" })
-Tabs["Tab_Farming_Other"] = Window:AddTab({ Title = "Tab Farming Other" })
-Tabs["Tab_Fruit_And_Raid"] = Window:AddTab({ Title = "Tab Fruit And Raid" })
-Tabs["Tab_Sea_Event"] = Window:AddTab({ Title = "Tab Sea Event" })
-Tabs["Tab_Setting_Select_Skill"] = Window:AddTab({ Title = "Tab Setting Select Skill" })
-Tabs["Tab_Volcanic_Event"] = Window:AddTab({ Title = "Tab Volcanic Event" })
-Tabs["Tab_Upgrade_Race"] = Window:AddTab({ Title = "Tab Upgrade Race" })
-Tabs["Tab_Get_Items_And_Buy"] = Window:AddTab({ Title = "Tab Get Items And Buy" })
-Tabs["Tab_ESP"] = Window:AddTab({ Title = "Tab ESP" })
-Tabs["Tab_PVP"] = Window:AddTab({ Title = "Tab PVP" })
-
--- Helpers e mapeamento de flags
-
-
-local function _normalize(s)
-    s = string.lower(s or "")
-    s = s:gsub("[%s%p]+","")
-    return s
-end
-
-local function setflag(name, v)
-    if type(name)~="string" then return end
-    if getgenv then pcall(function() getgenv()[name] = v end) end
-    pcall(function() shared[name] = v end)
-    _G[name] = v
-end
-
-local known_flags = {
-    "SelectWeapon",
-    "SelectIsland",
-    "AutoFarm",
-    "AutoGetMelee",
-    "StartMagnet",
-    "SeaSkill",
-    "RelzFishBoat",
-    "AutoObservationHakiV2",
-    "AutoTerrorshark",
-    "AutoSeaBest",
-    "AutoKillFishCrew",
-    "MasteryFarm",
-    "SailBoat",
-    "AutoDoughKing",
-    "AutoFarmBoss",
-    "Auto_Dungeon",
-    "AutoNewWorld",
-    "AutoTouchPadHaki",
-    "QuestTrain_2",
-    "AutoPirateRaid",
-    "AutoDarkbeard",
-    "AutoObservation",
-    "RelzPirateBrigade",
-    "RelzPirateGrandBrigade",
-    "AutoTrialRace",
-    "SelectedZone",
-    "AutoKillShark",
-    "AutoKillPiranha",
-    "TeleportToFruit",
-    "AutoThirdSea",
-    "AutoFactory",
-    "AutoEliteHunter",
-    "AutoRipIndra",
-    "AutoSoulReaper",
-    "BlazeEmberFarm",
-    "AutoFarmAllBoss",
-    "AutoCyborg",
-    "AutoKillPlayerAfterTrial",
-    "AutoGetCDK",
-    "AutoSaber",
-    "StopTween",
-    "TeleportIsland",
-    "AutoMaterial",
-    "DojoClaimQuest",
-    "DragonTalonUpgrade",
-    "KillLevi",
-    "UpgradeRaceV2",
-    "AutoGhoul",
-    "TeleportMigare",
-    "TeleportToGear",
-    "AutoRainbowHaki",
-    "AutoTushita",
-    "TeleportPlayer",
-    "BonesBring",
-    "Kill_At",
-    "SelectedBoat",
-    "SelectPlayer",
-    "AutoFrozenDimension",
-    "Tweentohighestpoint",
-    "AutoSkullGuitar",
-    "countryRegionCode",
-    "rejoin",
-    "AutoTurnOnV3",
-    "SkillZ",
-    "Race_1",
-    "WalkSpeed",
-    "NotAutoEquip",
-    "Job",
-    "WhiteScreen",
-    "FastAttack",
-    "SelectMaterial",
-    "SkillX",
-    "SkillC",
-    "AutoPray",
-    "AutoTryLuck",
-    "AutoFarmChest",
-    "SelectBoss",
-    "AutoStoreFruit",
-    "TweenToKitsune",
-    "CollectAzure",
-    "TweenPrehistoric",
-    "NoFrog",
-    "TeleportAcientClock",
-    "AutoBuyGear",
-    "LockMoonAndOnRaceV3",
-    "AutoYama",
-    "SafeMode",
-    "NoClipConnection",
-    "SpeedBoat",
-    "Join",
-    "AutoStats",
-    "AutoSpawnCP",
-    "StartBlackScreen",
-    "HideMob",
-    "RemoveText",
-    "RemoveNotification",
-    "AUTOHAKI",
-    "AutoTurnOnV4",
-    "AntiAFK",
-    "StopTP",
-    "BringMonster",
-    "SpinPos",
-    "ReduceLag",
-    "ResetFlags",
-    "CakeBring",
-    "SkillV",
-    "SkillF",
-    "TeleportToFruitHop",
-    "AutoEliteHunterHop",
-    "AutoCollectFireFlowers",
-    "StopChest",
-    "BypassTP",
-    "RandomFruit",
-    "SelectFruit",
-    "AutoBuyFruitSniper",
-    "SelectChip",
-    "AutoGetFruit",
-    "AutoAwaken",
-    "GoThroughRocks",
-    "UseSeaFruitSkill",
-    "SkillFruitZ",
-    "SkillFruitX",
-    "SkillFruitC",
-    "SkillFruitV",
-    "SkillFruitF",
-    "UseSeaMeleeSkill",
-    "SkillMeleeZ",
-    "SkillMeleeX",
-    "SkillMeleeC",
-    "UseSeaSwordSkill",
-    "SkillSwordZ",
-    "SkillSwordX",
-    "UseSeaGunSkill",
-    "SkillGunZ",
-    "SkillGunX",
-    "SummonKitsume",
-    "SetToTradeAureEmber",
-    "TradeAureEmber",
-    "AutoDefendVolcano",
-    "UseMelee",
-    "UseSword",
-    "UseGun",
-    "TweenToPrehistoric",
-    "KillAura",
-    "CollectEgg",
-    "TrialTeleportDraco",
-    "TeleportAdvancedFruitDealer",
-    "AutoTradeBone",
-    "AutoBuyLegendarySword",
-    "Auto_Buy_Enchancement",
-    "SimulationSet",
-    "Aimbot",
-    "AimbotGun",
-    "Safe",
-    "WalkWater",
-    "Clip",
-    "Kill_Trial_V4",
-    "AutoRejoinKick",
-    "Set",
-    "AutoObservation_Hop",
-    "SeaHoldSKillZ",
-    "SeaHoldSKillX",
-    "SeaHoldSKillC",
-    "SeaHoldSKillV",
-    "SeaHoldSKillF",
-    "HoldSKillZ",
-    "HoldSKillX",
-    "HoldSKillC",
-    "CollectBone",
-    "AutoCollectBone",
-    "NoClip"
-}
-
-local function match_and_set(toggle_id, toggle_title, v)
-    local key_title = _normalize(toggle_title)
-    local key_id = _normalize(toggle_id)
-    for _,fname in ipairs(known_flags) do
-        local fkey = _normalize(fname)
-        if fkey ~= "" and (key_title:find(fkey,1,true) or key_id:find(fkey,1,true)) then
-            setflag(fname, v)
+local function LoadConfig()
+    if isfile(configFile) then
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(readfile(configFile))
+        end)
+        if success and type(data) == "table" then
+            for k, v in pairs(data) do
+                _G[k] = v
+            end
         end
     end
-    -- heuristicas comuns
-    if key_title:find("autofarm",1,true) or key_id:find("autofarm",1,true) then setflag("AutoFarm", v) end
-    if key_title:find("boss",1,true) then setflag("AutoFarmBoss", v) end
-    if key_title:find("raid",1,true) or key_title:find("dungeon",1,true) then setflag("Auto_Dungeon", v) end
-    if key_title:find("stat",1,true) then setflag("AutoStats", v) end
-    if key_title:find("fruit",1,true) then setflag("AutoFruit", v) end
 end
 
-Tabs["Tab_Shop"]:AddButton({ Title = "Redeem Code", Callback = function() local f=_G["Redeem_Code"] or _G["OnRedeem_Code"] or _G["DoRedeem_Code"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Teleport Old World", Callback = function() local f=_G["Teleport_Old_World"] or _G["OnTeleport_Old_World"] or _G["DoTeleport_Old_World"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Teleport New World", Callback = function() local f=_G["Teleport_New_World"] or _G["OnTeleport_New_World"] or _G["DoTeleport_New_World"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Teleport Third Sea", Callback = function() local f=_G["Teleport_Third_Sea"] or _G["OnTeleport_Third_Sea"] or _G["DoTeleport_Third_Sea"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Black Leg", Callback = function() local f=_G["Black_Leg"] or _G["OnBlack_Leg"] or _G["DoBlack_Leg"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Fishman Karate", Callback = function() local f=_G["Fishman_Karate"] or _G["OnFishman_Karate"] or _G["DoFishman_Karate"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Electro", Callback = function() local f=_G["Electro"] or _G["OnElectro"] or _G["DoElectro"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Dragon Breath", Callback = function() local f=_G["Dragon_Breath"] or _G["OnDragon_Breath"] or _G["DoDragon_Breath"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "SuperHuman", Callback = function() local f=_G["SuperHuman"] or _G["OnSuperHuman"] or _G["DoSuperHuman"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Death Step", Callback = function() local f=_G["Death_Step"] or _G["OnDeath_Step"] or _G["DoDeath_Step"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Sharkman Karate", Callback = function() local f=_G["Sharkman_Karate"] or _G["OnSharkman_Karate"] or _G["DoSharkman_Karate"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Electric Claw", Callback = function() local f=_G["Electric_Claw"] or _G["OnElectric_Claw"] or _G["DoElectric_Claw"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Dragon Talon", Callback = function() local f=_G["Dragon_Talon"] or _G["OnDragon_Talon"] or _G["DoDragon_Talon"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "God Human", Callback = function() local f=_G["God_Human"] or _G["OnGod_Human"] or _G["DoGod_Human"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Sanguine Art", Callback = function() local f=_G["Sanguine_Art"] or _G["OnSanguine_Art"] or _G["DoSanguine_Art"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Skyjump [ $10,000 Beli ]", Callback = function() local f=_G["Skyjump__10000_Beli_"] or _G["OnSkyjump__10000_Beli_"] or _G["DoSkyjump__10000_Beli_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buso Haki [ $25,000 Beli ]", Callback = function() local f=_G["Buso_Haki__25000_Beli_"] or _G["OnBuso_Haki__25000_Beli_"] or _G["DoBuso_Haki__25000_Beli_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Observation haki [ $750,000 Beli ]", Callback = function() local f=_G["Observation_haki__750000_Beli_"] or _G["OnObservation_haki__750000_Beli_"] or _G["DoObservation_haki__750000_Beli_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Soru [ $100,000 Beli ]", Callback = function() local f=_G["Soru__100000_Beli_"] or _G["OnSoru__100000_Beli_"] or _G["DoSoru__100000_Beli_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buy Refund Stat (2500F)", Callback = function() local f=_G["Buy_Refund_Stat_2500F"] or _G["OnBuy_Refund_Stat_2500F"] or _G["DoBuy_Refund_Stat_2500F"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buy Reroll Race (3000F)", Callback = function() local f=_G["Buy_Reroll_Race_3000F"] or _G["OnBuy_Reroll_Race_3000F"] or _G["DoBuy_Reroll_Race_3000F"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buy Ghoul Race", Callback = function() local f=_G["Buy_Ghoul_Race"] or _G["OnBuy_Ghoul_Race"] or _G["DoBuy_Ghoul_Race"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buy Cyborg Race (2500F)", Callback = function() local f=_G["Buy_Cyborg_Race_2500F"] or _G["OnBuy_Cyborg_Race_2500F"] or _G["DoBuy_Cyborg_Race_2500F"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Status_And_Server"]:AddToggle("Toggle", { Title = "Spam Join", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Spam Join", v) end })
-Tabs["Tab_Status_And_Server"]:AddButton({ Title = "Join Server", Callback = function() local f=_G["Join_Server"] or _G["OnJoin_Server"] or _G["DoJoin_Server"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Status_And_Server"]:AddButton({ Title = "Copy JobId", Callback = function() local f=_G["Copy_JobId"] or _G["OnCopy_JobId"] or _G["DoCopy_JobId"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Status_And_Server"]:AddButton({ Title = "Rejoin Server", Callback = function() local f=_G["Rejoin_Server"] or _G["OnRejoin_Server"] or _G["DoRejoin_Server"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Status_And_Server"]:AddButton({ Title = "Hop Server", Callback = function() local f=_G["Hop_Server"] or _G["OnHop_Server"] or _G["DoHop_Server"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle", { Title = "Auto Stats", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Auto Stats", v) end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle_2", { Title = "Auto Summon Cake Prince", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Summon Cake Prince", v) end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle_3", { Title = "Black Screen", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Black Screen", v) end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle_4", { Title = "White Screen", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_4", "White Screen", v) end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle_5", { Title = "Hide Mob", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "Hide Mob", v) end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle_6", { Title = "Remove Dame Text", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Remove Dame Text", v) end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle_7", { Title = "Remove Notification", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Remove Notification", v) end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle_8", { Title = "Auto Rejoin On Kick", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Auto Rejoin On Kick", v) end })
-Tabs["Tab_Local_Player"]:AddToggle("Toggle_9", { Title = "Teleport Island", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_9", "Teleport Island", v) end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Stop Tween", Callback = function() local f=_G["Stop_Tween"] or _G["OnStop_Tween"] or _G["DoStop_Tween"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Show Item", Callback = function() local f=_G["Show_Item"] or _G["OnShow_Item"] or _G["DoShow_Item"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Open Devil Fruit Shop [ Mirage ]", Callback = function() local f=_G["Open_Devil_Fruit_Shop__Mirage_"] or _G["OnOpen_Devil_Fruit_Shop__Mirage_"] or _G["DoOpen_Devil_Fruit_Shop__Mirage_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Open Devil Fruit Shop", Callback = function() local f=_G["Open_Devil_Fruit_Shop"] or _G["OnOpen_Devil_Fruit_Shop"] or _G["DoOpen_Devil_Fruit_Shop"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Open Title", Callback = function() local f=_G["Open_Title"] or _G["OnOpen_Title"] or _G["DoOpen_Title"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Open Color", Callback = function() local f=_G["Open_Color"] or _G["OnOpen_Color"] or _G["DoOpen_Color"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Boost FPS", Callback = function() local f=_G["Boost_FPS"] or _G["OnBoost_FPS"] or _G["DoBoost_FPS"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Change Team To Pirates", Callback = function() local f=_G["Change_Team_To_Pirates"] or _G["OnChange_Team_To_Pirates"] or _G["DoChange_Team_To_Pirates"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Change Team To Marines", Callback = function() local f=_G["Change_Team_To_Marines"] or _G["OnChange_Team_To_Marines"] or _G["DoChange_Team_To_Marines"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Local_Player"]:AddButton({ Title = "Rain Fruit", Callback = function() local f=_G["Rain_Fruit"] or _G["OnRain_Fruit"] or _G["DoRain_Fruit"]; if type(f)=="function" then pcall(f) end end })
-local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table" or #values_Dropdown==0 then values_Dropdown = {"Selecione"} end
-Tabs["Tab_Local_Player"]:AddDropdown("Dropdown", { Title = "Select Stats", Values = values_Dropdown, Multi = false, Default = values_Dropdown[1], Callback = function(choice) _G["Dropdown"]=choice end })
-local values_Dropdown_2 = _G["values_Dropdown_2"]; if type(values_Dropdown_2)~="table" or #values_Dropdown_2==0 then values_Dropdown_2 = {"Selecione"} end
-Tabs["Tab_Local_Player"]:AddDropdown("Dropdown_2", { Title = "Select Island", Values = values_Dropdown_2, Multi = false, Default = values_Dropdown_2[1], Callback = function(choice) _G["Dropdown_2"]=choice end })
-local values_Dropdown_3 = _G["values_Dropdown_3"]; if type(values_Dropdown_3)~="table" or #values_Dropdown_3==0 then values_Dropdown_3 = {"Selecione"} end
-Tabs["Tab_Local_Player"]:AddDropdown("Dropdown_3", { Title = "Select Island", Values = values_Dropdown_3, Multi = false, Default = values_Dropdown_3[1], Callback = function(choice) _G["Dropdown_3"]=choice end })
-local values_Dropdown_4 = _G["values_Dropdown_4"]; if type(values_Dropdown_4)~="table" or #values_Dropdown_4==0 then values_Dropdown_4 = {"Selecione"} end
-Tabs["Tab_Local_Player"]:AddDropdown("Dropdown_4", { Title = "Select Island", Values = values_Dropdown_4, Multi = false, Default = values_Dropdown_4[1], Callback = function(choice) _G["Dropdown_4"]=choice end })
-Tabs["Tab_Local_Player"]:AddSlider("Slider", { Title = "Point Stats", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
-Tabs["Setting_Farm"]:AddToggle("Toggle", { Title = "Auto Turn On Buso", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Auto Turn On Buso", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_2", { Title = "Auto Turn On Race V4", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Turn On Race V4", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_3", { Title = "Auto Turn On Race V3", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Auto Turn On Race V3", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_4", { Title = "Auto Set Spawn Point", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_4", "Auto Set Spawn Point", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_5", { Title = "Anti AFK", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "Anti AFK", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_6", { Title = "Reset Teleport", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Reset Teleport", v) end })
-Tabs["Setting_Farm"]:AddToggle("Bypass_TP", { Title = "Stop Reset Teleport When Have Legendary", Default = _G[""] or false, Callback = function(v) match_and_set("Bypass_TP", "Stop Reset Teleport When Have Legendary", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_7", { Title = "Fast Attack", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Fast Attack", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_8", { Title = "Bring Mob", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Bring Mob", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_9", { Title = "Spin Position", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_9", "Spin Position", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_10", { Title = "Auto Reduce Lag Farm Safely", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_10", "Auto Reduce Lag Farm Safely", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_11", { Title = "Anti Cheat Farming", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_11", "Anti Cheat Farming", v) end })
-local values_DropdownFarm = _G["values_DropdownFarm"]; if type(values_DropdownFarm)~="table" or #values_DropdownFarm==0 then values_DropdownFarm = {"Selecione"} end
-Tabs["Setting_Farm"]:AddDropdown("DropdownFarm", { Title = "Select Weapon", Values = values_DropdownFarm, Multi = false, Default = values_DropdownFarm[1], Callback = function(choice) _G["DropdownFarm"]=choice end })
-Tabs["Setting_Farm"]:AddSlider("Slider", { Title = "Farm Distance", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
-Tabs["Tab_Farming"]:AddToggle("Toggle", { Title = "Start Farm", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Start Farm", v) end })
-Tabs["Tab_Farming"]:AddToggle("Toggle_2", { Title = "Farm Material", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Farm Material", v) end })
-Tabs["Tab_Farming"]:AddToggle("Toggle_3", { Title = "Auto Farm Mastery", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Auto Farm Mastery", v) end })
-Tabs["Tab_Farming"]:AddToggle("Toggle_4", { Title = "Skill Z", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_4", "Skill Z", v) end })
-Tabs["Tab_Farming"]:AddToggle("Toggle_5", { Title = "Skill X", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "Skill X", v) end })
-Tabs["Tab_Farming"]:AddToggle("Toggle_6", { Title = "Skill C", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Skill C", v) end })
-Tabs["Tab_Farming"]:AddToggle("Toggle_7", { Title = "Skill V", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Skill V", v) end })
-Tabs["Tab_Farming"]:AddToggle("Toggle_8", { Title = "Skill F", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Skill F", v) end })
-Tabs["Tab_Farming"]:AddButton({ Title = "Copy discord invite link", Callback = function() local f=_G["Copy_discord_invite_link"] or _G["OnCopy_discord_invite_link"] or _G["DoCopy_discord_invite_link"]; if type(f)=="function" then pcall(f) end end })
-local values_DropdownFarm = _G["values_DropdownFarm"]; if type(values_DropdownFarm)~="table" or #values_DropdownFarm==0 then values_DropdownFarm = {"Selecione"} end
-Tabs["Tab_Farming"]:AddDropdown("DropdownFarm", { Title = "Select Method Farm", Values = values_DropdownFarm, Multi = false, Default = values_DropdownFarm[1], Callback = function(choice) _G["DropdownFarm"]=choice end })
-local values_MaterialListMon = _G["values_MaterialListMon"]; if type(values_MaterialListMon)~="table" or #values_MaterialListMon==0 then values_MaterialListMon = {"Selecione"} end
-Tabs["Tab_Farming"]:AddDropdown("MaterialListMon", { Title = "Select Material", Values = values_MaterialListMon, Multi = false, Default = values_MaterialListMon[1], Callback = function(choice) _G["MaterialListMon"]=choice end })
-local values_DropdownFarm_2 = _G["values_DropdownFarm_2"]; if type(values_DropdownFarm_2)~="table" or #values_DropdownFarm_2==0 then values_DropdownFarm_2 = {"Selecione"} end
-Tabs["Tab_Farming"]:AddDropdown("DropdownFarm_2", { Title = "Select Method Farm Mastery", Values = values_DropdownFarm_2, Multi = false, Default = values_DropdownFarm_2[1], Callback = function(choice) _G["DropdownFarm_2"]=choice end })
-Tabs["Tab_Farming"]:AddSlider("Slider", { Title = "Select Health [ % ]", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle", { Title = "Auto Get Melee", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Auto Get Melee", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_2", { Title = "Teleport To Fruit", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Teleport To Fruit", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_3", { Title = "Teleport To Fruit [ Hop Server ]", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Teleport To Fruit [ Hop Server ]", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_4", { Title = "Auto New World", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_4", "Auto New World", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_5", { Title = "Auto Third World", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "Auto Third World", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_6", { Title = "Auto Factory", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Auto Factory", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_7", { Title = "Auto Pirate Raid", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Auto Pirate Raid", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_8", { Title = "Auto Elite Hunter", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Auto Elite Hunter", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_9", { Title = "Hop Server Elite Hunter", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_9", "Hop Server Elite Hunter", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_10", { Title = "Auto Touch Pad Haki", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_10", "Auto Touch Pad Haki", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_11", { Title = "Auto Rip Indra", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_11", "Auto Rip Indra", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_12", { Title = "Auto Soul Reaper", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_12", "Auto Soul Reaper", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_13", { Title = "Auto Pray", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_13", "Auto Pray", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_14", { Title = "Auto Try Luck", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_14", "Auto Try Luck", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_15", { Title = "Auto Dough King", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_15", "Auto Dough King", v) end })
-Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_16", { Title = "Auto Darkbeard", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_16", "Auto Darkbeard", v) end })
-local values_DropdownFarm = _G["values_DropdownFarm"]; if type(values_DropdownFarm)~="table" or #values_DropdownFarm==0 then values_DropdownFarm = {"Selecione"} end
-Tabs["Tab_Stack_Farm"]:AddDropdown("DropdownFarm", { Title = "Select Melee", Values = values_DropdownFarm, Multi = false, Default = values_DropdownFarm[1], Callback = function(choice) _G["DropdownFarm"]=choice end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle", { Title = "Auto Quest Dojo Trainer", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Auto Quest Dojo Trainer", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_2", { Title = "Auto Upgrade Dragon Talon", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Upgrade Dragon Talon", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_3", { Title = "Auto Attack Hydra Mob And Collect Ember", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Auto Attack Hydra Mob And Collect Ember", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_4", { Title = "Auto Collect FireFlower", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_4", "Auto Collect FireFlower", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("ToggleChest", { Title = "Auto Chest", Default = _G[""] or false, Callback = function(v) match_and_set("ToggleChest", "Auto Chest", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_5", { Title = "Stop When Have God's Chalice& Fist Of Darkness", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "Stop When Have God's Chalice& Fist Of Darkness", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_6", { Title = "Auto UP Observation V2", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Auto UP Observation V2", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_7", { Title = "Farm Observation", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Farm Observation", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_8", { Title = "Auto Kill Boss", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Auto Kill Boss", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_9", { Title = "Auto Kill All Boss", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_9", "Auto Kill All Boss", v) end })
-Tabs["Tab_Farming_Other"]:AddButton({ Title = "Teleport To Dragon Dojo", Callback = function() local f=_G["Teleport_To_Dragon_Dojo"] or _G["OnTeleport_To_Dragon_Dojo"] or _G["DoTeleport_To_Dragon_Dojo"]; if type(f)=="function" then pcall(f) end end })
-local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table" or #values_Dropdown==0 then values_Dropdown = {"Selecione"} end
-Tabs["Tab_Farming_Other"]:AddDropdown("Dropdown", { Title = "Select Boss", Values = values_Dropdown, Multi = false, Default = values_Dropdown[1], Callback = function(choice) _G["Dropdown"]=choice end })
-Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle", { Title = "Random Devil Fruit", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Random Devil Fruit", v) end })
-Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_2", { Title = "Auto Store Fruit", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Store Fruit", v) end })
-Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_3", { Title = "Buy Blox Fruit Sniper Shop", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Buy Blox Fruit Sniper Shop", v) end })
-Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_4", { Title = "Get Fruit In Inventory Low Beli", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_4", "Get Fruit In Inventory Low Beli", v) end })
-Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_5", { Title = "Auto Raid", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "Auto Raid", v) end })
-Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_6", { Title = "Auto Awaken Fruit", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_6", "Auto Awaken Fruit", v) end })
-Tabs["Tab_Fruit_And_Raid"]:AddButton({ Title = "Teleport To Lab", Callback = function() local f=_G["Teleport_To_Lab"] or _G["OnTeleport_To_Lab"] or _G["DoTeleport_To_Lab"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Fruit_And_Raid"]:AddButton({ Title = "Teleport To Lab", Callback = function() local f=_G["Teleport_To_Lab"] or _G["OnTeleport_To_Lab"] or _G["DoTeleport_To_Lab"]; if type(f)=="function" then pcall(f) end end })
-local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table" or #values_Dropdown==0 then values_Dropdown = {"Selecione"} end
-Tabs["Tab_Fruit_And_Raid"]:AddDropdown("Dropdown", { Title = "Blox Fruit Sniper Shop", Values = values_Dropdown, Multi = false, Default = values_Dropdown[1], Callback = function(choice) _G["Dropdown"]=choice end })
-local values_Dropdown_2 = _G["values_Dropdown_2"]; if type(values_Dropdown_2)~="table" or #values_Dropdown_2==0 then values_Dropdown_2 = {"Selecione"} end
-Tabs["Tab_Fruit_And_Raid"]:AddDropdown("Dropdown_2", { Title = "Select Raid", Values = values_Dropdown_2, Multi = false, Default = values_Dropdown_2[1], Callback = function(choice) _G["Dropdown_2"]=choice end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle", { Title = "Auto Penetrate Rocks When Boat Runs", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Auto Penetrate Rocks When Boat Runs", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_2", { Title = "Auto Sea Event", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Sea Event", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_3", { Title = "Auto Shark", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Auto Shark", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_4", { Title = "Auto Piranha", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_4", "Auto Piranha", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_5", { Title = "Auto Fish Crew", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_5", "Auto Fish Crew", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_6", { Title = "Auto Ghost Ship", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Auto Ghost Ship", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_7", { Title = "Auto Pirate Brigade", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Auto Pirate Brigade", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_8", { Title = "Auto Pirate Grand Brigade", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Auto Pirate Grand Brigade", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_9", { Title = "Auto Terror Shark", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_9", "Auto Terror Shark", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_10", { Title = "Auto Sea Beast", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_10", "Auto Sea Beast", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_11", { Title = "Teleport To Kitsune Island", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_11", "Teleport To Kitsune Island", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_12", { Title = "Auto Summon Soul EmBer", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_12", "Auto Summon Soul EmBer", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_13", { Title = "Auto Collect Azure Wisp", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_13", "Auto Collect Azure Wisp", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_14", { Title = "Auto Trade Azure Ember", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_14", "Auto Trade Azure Ember", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_15", { Title = "Teleport To Frozen Dimension", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_15", "Teleport To Frozen Dimension", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_16", { Title = "Auto Attack Leviathan", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_16", "Auto Attack Leviathan", v) end })
-Tabs["Tab_Sea_Event"]:AddButton({ Title = "Trade Azure Wisp", Callback = function() local f=_G["Trade_Azure_Wisp"] or _G["OnTrade_Azure_Wisp"] or _G["DoTrade_Azure_Wisp"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Sea_Event"]:AddButton({ Title = "Buy Spy", Callback = function() local f=_G["Buy_Spy"] or _G["OnBuy_Spy"] or _G["DoBuy_Spy"]; if type(f)=="function" then pcall(f) end end })
-local values_zoneselect = _G["values_zoneselect"]; if type(values_zoneselect)~="table" or #values_zoneselect==0 then values_zoneselect = {"Selecione"} end
-Tabs["Tab_Sea_Event"]:AddDropdown("zoneselect", { Title = "Select Zone", Values = values_zoneselect, Multi = false, Default = values_zoneselect[1], Callback = function(choice) _G["zoneselect"]=choice end })
-local values_selectthuyen = _G["values_selectthuyen"]; if type(values_selectthuyen)~="table" or #values_selectthuyen==0 then values_selectthuyen = {"Selecione"} end
-Tabs["Tab_Sea_Event"]:AddDropdown("selectthuyen", { Title = "Select Boat", Values = values_selectthuyen, Multi = false, Default = values_selectthuyen[1], Callback = function(choice) _G["selectthuyen"]=choice end })
-local values_boattween = _G["values_boattween"]; if type(values_boattween)~="table" or #values_boattween==0 then values_boattween = {"Selecione"} end
-Tabs["Tab_Sea_Event"]:AddDropdown("boattween", { Title = "Speed Tween Boat", Values = values_boattween, Multi = false, Default = values_boattween[1], Callback = function(choice) _G["boattween"]=choice end })
-Tabs["Tab_Sea_Event"]:AddSlider("SliderSpeedBoat", { Title = "Ship Speed", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["SliderSpeedBoat"]=val end })
-Tabs["Tab_Sea_Event"]:AddSlider("Slider", { Title = "Set Azure Ember", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle", { Title = "Select Use Fruit", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Select Use Fruit", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_2", { Title = "Select Use Melee", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Select Use Melee", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_3", { Title = "Select Use Sword", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_3", "Select Use Sword", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_4", { Title = "Select Use Gun", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_4", "Select Use Gun", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_5", { Title = "Skill Fruit Z", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "Skill Fruit Z", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_6", { Title = "Skill Fruit X", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Skill Fruit X", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_7", { Title = "Skill Fruit C", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Skill Fruit C", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_8", { Title = "Skill Fruit V", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Skill Fruit V", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_9", { Title = "Skill Fruit F", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_9", "Skill Fruit F", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_10", { Title = "Skill Melee Z", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_10", "Skill Melee Z", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_11", { Title = "Skill Melee X", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_11", "Skill Melee X", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_12", { Title = "Skill Melee C", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_12", "Skill Melee C", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_13", { Title = "Sword And Gun Skill Z", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_13", "Sword And Gun Skill Z", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_14", { Title = "Sword And Gun Skill X", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_14", "Sword And Gun Skill X", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("MyToggle", { Title = "Teleport Prehistoric Island", Default = _G[""] or false, Callback = function(v) match_and_set("MyToggle", "Teleport Prehistoric Island", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle", { Title = "Auto Event Volcano Island Defense", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Auto Event Volcano Island Defense", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_2", { Title = "Auto Kill Aura Golems", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Kill Aura Golems", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_3", { Title = "Auto Collect Bone", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Auto Collect Bone", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_4", { Title = "Auto Collect Egg", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_4", "Auto Collect Egg", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_5", { Title = "Auto Use Skill Melee", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "Auto Use Skill Melee", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_6", { Title = "Auto Use Skill Sword", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_6", "Auto Use Skill Sword", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_7", { Title = "Auto Use Skill Gun", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Auto Use Skill Gun", v) end })
-Tabs["Tab_Volcanic_Event"]:AddButton({ Title = "Destroy Lava In Prehistoric Island", Callback = function() local f=_G["Destroy_Lava_In_Prehistoric_Island"] or _G["OnDestroy_Lava_In_Prehistoric_Island"] or _G["DoDestroy_Lava_In_Prehistoric_Island"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Volcanic_Event"]:AddButton({ Title = "Crafting Volcanic Magnet", Callback = function() local f=_G["Crafting_Volcanic_Magnet"] or _G["OnCrafting_Volcanic_Magnet"] or _G["DoCrafting_Volcanic_Magnet"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle", { Title = "Teleport To The Draco Clan Trial Door", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Teleport To The Draco Clan Trial Door", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_2", { Title = "Auto Upgrade Race V2", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Upgrade Race V2", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_3", { Title = "Auto Get Cyborg", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Auto Get Cyborg", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_4", { Title = "Auto Get Ghoul", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_4", "Auto Get Ghoul", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_5", { Title = "No Frog", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "No Frog", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_6", { Title = "Teleport Ancient Clock", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Teleport Ancient Clock", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_7", { Title = "Auto Buy Gear", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Auto Buy Gear", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_8", { Title = "Auto Finish Train Quest", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Auto Finish Train Quest", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_9", { Title = "Teleport To Migare Island", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_9", "Teleport To Migare Island", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_10", { Title = "Teleport To Highest Point", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_10", "Teleport To Highest Point", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_11", { Title = "Teleport To Advanced Fruit Dealer", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_11", "Teleport To Advanced Fruit Dealer", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_12", { Title = "Lock Moon And On Race V3", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_12", "Lock Moon And On Race V3", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_13", { Title = "Teleport To Blue Gear", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_13", "Teleport To Blue Gear", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_14", { Title = "Auto Trial Race", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_14", "Auto Trial Race", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_15", { Title = "Auto Kill Player After Trial V4", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_15", "Auto Kill Player After Trial V4", v) end })
-Tabs["Tab_Upgrade_Race"]:AddButton({ Title = "Teleport To Trial Door", Callback = function() local f=_G["Teleport_To_Trial_Door"] or _G["OnTeleport_To_Trial_Door"] or _G["DoTeleport_To_Trial_Door"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle", { Title = "Auto Trade Bone", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Auto Trade Bone", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_2", { Title = "Auto Buy Legendary Sword", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Buy Legendary Sword", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_3", { Title = "Auto Buy Haki Color", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Auto Buy Haki Color", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_4", { Title = "Hop Server [ Haki color or Legendary Sword]", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_4", "Hop Server [ Haki color or Legendary Sword]", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_5", { Title = "Auto Get Rainbow Haki", Default = _G["w"] or false, Callback = function(v) match_and_set("Toggle_5", "Auto Get Rainbow Haki", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_6", { Title = "Auto Skull Guitar", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Auto Skull Guitar", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_7", { Title = "Auto Get CDK", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_7", "Auto Get CDK", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_8", { Title = "Auto Yama", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_8", "Auto Yama", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_9", { Title = "Auto Tushita", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_9", "Auto Tushita", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_10", { Title = "Auto Saber", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_10", "Auto Saber", v) end })
-Tabs["Tab_ESP"]:AddToggle("Toggle", { Title = "ESP Island", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "ESP Island", v) end })
-Tabs["Tab_ESP"]:AddToggle("Toggle_2", { Title = "ESP Fruit", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "ESP Fruit", v) end })
-Tabs["Tab_ESP"]:AddToggle("Toggle_3", { Title = "ESP Player", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "ESP Player", v) end })
-Tabs["Tab_PVP"]:AddToggle("MyToggle", { Title = "Teleport Player", Default = _G[""] or false, Callback = function(v) match_and_set("MyToggle", "Teleport Player", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle", { Title = "Auto Aimbot", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle", "Auto Aimbot", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_2", { Title = "Auto Aimbot Gun", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_2", "Auto Aimbot Gun", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_3", { Title = "Safe Modes", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_3", "Safe Modes", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_4", { Title = "Walk On Water", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_4", "Walk On Water", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_5", { Title = "No Clip", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_5", "No Clip", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_6", { Title = "Change WalkSpeed", Default = _G[""] or false, Callback = function(v) match_and_set("Toggle_6", "Change WalkSpeed", v) end })
-local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table" or #values_Dropdown==0 then values_Dropdown = {"Selecione"} end
-Tabs["Tab_PVP"]:AddDropdown("Dropdown", { Title = "Select Player PVP", Values = values_Dropdown, Multi = false, Default = values_Dropdown[1], Callback = function(choice) _G["Dropdown"]=choice end })
-Tabs["Tab_PVP"]:AddSlider("Slider", { Title = "Safe Mode At", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
+LoadConfig()
 
 -- Codigo original (inline, sem alteracoes)
 
@@ -588,7 +130,7 @@ function CheckQuest()
             NameQuest = "JungleQuest"
             NameMon = "Gorilla"
             CFrameQuest = CFrame.new(-1598.08911, 35.5501175, 153.377838, 0, 0, 1, 0, 1, -0, -1, 0, 0)
-            CFrameMon = CFrame.new(-1129.8836669921875, 40.46354675292969, -525.4237060546875)
+            CFrameMon = CFrame.new(-1249.18994, 8.22999573, -549.679993, -1, 0, 0, 0, 1, 0, 0, 0, -1)
         elseif MyLevel >= 30 and MyLevel <= 39 then
             Mon = "Pirate"
             LevelQuest = 1
@@ -761,7 +303,7 @@ function CheckQuest()
             NameQuest = "FountainQuest"
             NameMon = "Galley Captain"
             CFrameQuest = CFrame.new(5259.81982, 37.3500175, 4050.0293, 0.087131381, 0, 0.996196866, 0, 1, 0, -0.996196866, 0, 0.087131381)
-            CFrameMon = CFrame.new(5792.354, 58.9349976, 4823.92285, -0.939700961, 0, -0.341998369, 0, 1, 0, 0.341998369, 0, -0.939700961)
+            CFrameMon = CFrame.new(5348.2832, 39.348999, 3953.25488, -0.573599219, 0, -0.81913656, 0, 1, 0, 0.81913656, 0, -0.573599219)
         end
     elseif World2 then
         if MyLevel >= 700 and MyLevel <= 724 then
@@ -2326,7 +1868,7 @@ Input = Server:AddInput("Input", {
          getgenv().Job = Value
      end
 })    
-Toggle = Server:AddToggle("Toggle", {Title = "Spam Join", Default = _G[""] or false })
+Toggle = Server:AddToggle("Toggle", {Title = "Spam Join", Default = false })
 Toggle:OnChanged(function(Value)
 getgenv().Join = Value
 end)
@@ -2588,7 +2130,7 @@ Slider = LGa:AddSlider("Slider", {
         PointStats = value
     end
 })
-Toggle = LGa:AddToggle("Toggle", { Title = "Auto Stats", Default = _G[""] or false })
+Toggle = LGa:AddToggle("Toggle", { Title = "Auto Stats", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoStats = Value
 end)
@@ -2638,7 +2180,7 @@ spawn(function()
         end
     end
 end)
-Toggle = LGa:AddToggle("Toggle", {Title = "Black Screen", Default = _G[""] or false })
+Toggle = LGa:AddToggle("Toggle", {Title = "Black Screen", Default = false })
 Toggle:OnChanged(function(Value)
 	getgenv().StartBlackScreen = Value
 end)
@@ -2656,7 +2198,7 @@ spawn(function()
         end
     end
 end)
-Toggle = LGa:AddToggle("Toggle", {Title = "White Screen", Default = _G[""] or false })
+Toggle = LGa:AddToggle("Toggle", {Title = "White Screen", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().WhiteScreen = Value
     if getgenv().WhiteScreen == true then
@@ -2665,7 +2207,7 @@ Toggle:OnChanged(function(Value)
         game:GetService("RunService"):Set3dRenderingEnabled(true)
     end
 end)
-Toggle = LGa:AddToggle("Toggle", {Title = "Hide Mob", Default = _G[""] or false })
+Toggle = LGa:AddToggle("Toggle", {Title = "Hide Mob", Default = false })
 Toggle:OnChanged(function(Value)
      getgenv().HideMob = Value		
 end)
@@ -2702,12 +2244,12 @@ Toggle:OnChanged(function(Value)
     getgenv().RemoveText = Value
     game:GetService("ReplicatedStorage").Assets.GUI.DamageCounter.Enabled = not getgenv().RemoveText
 end)
-Toggle = LGa:AddToggle("Toggle", {Title = "Remove Notification", Default = _G[""] or false })
+Toggle = LGa:AddToggle("Toggle", {Title = "Remove Notification", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().RemoveNotification = Value
     game.Players.LocalPlayer.PlayerGui.Notifications.Enabled = not getgenv().RemoveNotification
 end)
-Toggle = LGa:AddToggle("Toggle", {Title = "Auto Rejoin On Kick", Default = _G[""] or false })
+Toggle = LGa:AddToggle("Toggle", {Title = "Auto Rejoin On Kick", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoRejoinKick = Value
     if Value then
@@ -2800,7 +2342,7 @@ if World3 then
         getgenv().SelectIsland = Value
     end)
 end    
-Toggle = LGa:AddToggle("Toggle", {Title = "Teleport Island", Default = _G[""] or false })
+Toggle = LGa:AddToggle("Toggle", {Title = "Teleport Island", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().TeleportIsland = Value
     if getgenv().TeleportIsland == true then
@@ -2959,7 +2501,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Settings:AddToggle("Toggle", { Title = "Auto Turn On Race V4", Default = _G[""] or false })
+Toggle = Settings:AddToggle("Toggle", { Title = "Auto Turn On Race V4", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoTurnOnV4 = Value
 end)
@@ -2984,7 +2526,7 @@ task.spawn(function()
         end
     end
 end)
-Toggle = Settings:AddToggle("Toggle", {Title = "Auto Turn On Race V3", Default = _G[""] or false })
+Toggle = Settings:AddToggle("Toggle", {Title = "Auto Turn On Race V3", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoTurnOnV3 = Value
 end)
@@ -3002,7 +2544,7 @@ task.spawn(function()
         end)
     end
 end)
-local Toggle = Settings:AddToggle("Toggle", {Title = "Auto Set Spawn Point", Default = _G["w"] or false })
+local Toggle = Settings:AddToggle("Toggle", {Title = "Auto Set Spawn Point", Default = false })
 local lastSetState = false
 Toggle:OnChanged(function(Value)
     getgenv().Set = Value
@@ -3033,11 +2575,11 @@ task.spawn(function()
         game:GetService("RunService").Heartbeat:wait()
     end
 end)
-Toggle = Settings:AddToggle("Toggle", {Title = "Reset Teleport", Default = _G[""] or false })
+Toggle = Settings:AddToggle("Toggle", {Title = "Reset Teleport", Default = false })
 Toggle:OnChanged(function(Value)
     BypassTP = Value 
 end)
-Toggle = Settings:AddToggle("Bypass TP", { Title = "Stop Reset Teleport When Have Legendary", Default = _G[""] or false })
+Toggle = Settings:AddToggle("Bypass TP", { Title = "Stop Reset Teleport When Have Legendary", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().StopTP = Value
 end)
@@ -3482,7 +3024,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Main:AddToggle("Toggle", { Title = "Start Farm", Default = _G[""] or false })
+Toggle = Main:AddToggle("Toggle", { Title = "Start Farm", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoFarm = Value
     StopTween(getgenv().AutoFarm)
@@ -3507,7 +3049,7 @@ MaterialListMon = Main:AddDropdown("MaterialListMon", {
 MaterialListMon:OnChanged(function(Value)
     getgenv().SelectMaterial = Value
 end)
-Toggle = Main:AddToggle("Toggle", {Title = "Farm Material", Default = _G[""] or false})
+Toggle = Main:AddToggle("Toggle", {Title = "Farm Material", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoMaterial = Value
     if not Value then StopTween() end
@@ -3889,7 +3431,7 @@ spawn(function()
         end
     end)
 end)
-Toggle = Main:AddToggle("Toggle", { Title = "Auto Farm Mastery", Default = _G[""] or false })
+Toggle = Main:AddToggle("Toggle", { Title = "Auto Farm Mastery", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().MasteryFarm = Value
     StopTween(getgenv().MasteryFarm)
@@ -3898,19 +3440,19 @@ Toggle = Main:AddToggle("Toggle", {Title = "Skill Z", Default = true })
 Toggle:OnChanged(function(Value)
     getgenv().SkillZ = Value
 end)
-Toggle = Main:AddToggle("Toggle", {Title = "Skill X", Default = _G[""] or false })
+Toggle = Main:AddToggle("Toggle", {Title = "Skill X", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().SkillX = Value
 end)
-Toggle = Main:AddToggle("Toggle", {Title = "Skill C", Default = _G[""] or false })
+Toggle = Main:AddToggle("Toggle", {Title = "Skill C", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().SkillC = Value
 end)
-Toggle = Main:AddToggle("Toggle", {Title = "Skill V", Default = _G[""] or false })
+Toggle = Main:AddToggle("Toggle", {Title = "Skill V", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().SkillV = Value
 end)
-Toggle = Main:AddToggle("Toggle", {Title = "Skill F", Default = _G[""] or false })
+Toggle = Main:AddToggle("Toggle", {Title = "Skill F", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().SkillF = Value
 end)
@@ -4162,12 +3704,12 @@ spawn(function()
         end
     end)
 end)
-Toggle = Stack:AddToggle("Toggle", { Title = "Auto Get Melee", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", { Title = "Auto Get Melee", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoGetMelee = Value
     StopTween(getgenv().AutoGetMelee)
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Teleport To Fruit", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Teleport To Fruit", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().TeleportToFruit = Value
     StopTween(getgenv().TeleportToFruit)
@@ -4190,7 +3732,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Teleport To Fruit [ Hop Server ]", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Teleport To Fruit [ Hop Server ]", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().TeleportToFruitHop = Value
 end)
@@ -4217,7 +3759,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto New World", Default = _G["w"] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto New World", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoNewWorld = Value
     StopTween(getgenv().AutoNewWorld)
@@ -4278,7 +3820,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Third World", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Third World", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoThirdSea = Value
     StopTween(getgenv().AutoThirdSea)
@@ -4325,7 +3867,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Factory", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Factory", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoFactory = Value
     StopTween(getgenv().AutoFactory)
@@ -4349,7 +3891,7 @@ task.spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", { Title = "Auto Pirate Raid", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", { Title = "Auto Pirate Raid", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoPirateRaid = Value
     StopTween(getgenv().AutoPirateRaid)
@@ -4395,7 +3937,7 @@ task.spawn(function()
         end)
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Elite Hunter", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Elite Hunter", Default = false })
 Toggle:OnChanged(function(Value)
     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("AbandonQuest")
     getgenv().AutoEliteHunter = Value
@@ -4453,7 +3995,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Touch Pad Haki", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Touch Pad Haki", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoTouchPadHaki = Value
     StopTween(getgenv().AutoTouchPadHaki)
@@ -4496,7 +4038,7 @@ spawn(function()
         end)
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Rip Indra", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Rip Indra", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoRipIndra = Value
     StopTween(getgenv().AutoRipIndra)
@@ -4536,7 +4078,7 @@ spawn(function()
         end
     end)
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Soul Reaper", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Soul Reaper", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoSoulReaper = Value
     StopTween(getgenv().AutoSoulReaper)
@@ -4583,7 +4125,7 @@ spawn(function()
         task.wait(0.1)
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Pray", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Pray", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoPray = Value
     StopTween(getgenv().AutoPray)
@@ -4602,7 +4144,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Try Luck", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Try Luck", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoTryLuck = Value
     StopTween(getgenv().AutoTryLuck)  
@@ -4619,7 +4161,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Dough King", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Dough King", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoDoughKing = Value
     StopTween(getgenv().AutoDoughKing)
@@ -4753,7 +4295,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Stack:AddToggle("Toggle", {Title = "Auto Darkbeard", Default = _G[""] or false })
+Toggle = Stack:AddToggle("Toggle", {Title = "Auto Darkbeard", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoDarkbeard = Value
     StopTween(getgenv().AutoDarkbeard)
@@ -4802,7 +4344,7 @@ Other:AddButton({
         topos(CFrame.new(5814.42724609375, 1208.3267822265625, 884.5785522460938))
     end
 })
-Toggle = Other:AddToggle("Toggle", {Title = "Auto Quest Dojo Trainer", Default = _G[""] or false })
+Toggle = Other:AddToggle("Toggle", {Title = "Auto Quest Dojo Trainer", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().DojoClaimQuest = Value
     StopTween(getgenv().DojoClaimQuest)
@@ -4835,7 +4377,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Other:AddToggle("Toggle", {Title = "Auto Upgrade Dragon Talon", Default = _G[""] or false })
+Toggle = Other:AddToggle("Toggle", {Title = "Auto Upgrade Dragon Talon", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().DragonTalonUpgrade = Value
     StopTween(getgenv().DragonTalonUpgrade)
@@ -4857,7 +4399,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Other:AddToggle("Toggle", {Title = "Auto Attack Hydra Mob And Collect Ember", Default = _G[""] or false })
+Toggle = Other:AddToggle("Toggle", {Title = "Auto Attack Hydra Mob And Collect Ember", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().BlazeEmberFarm = Value
     StopTween(getgenv().BlazeEmberFarm)
@@ -4903,7 +4445,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Other:AddToggle("Toggle", {Title = "Auto Collect FireFlower", Default = _G["w"] or false })
+Toggle = Other:AddToggle("Toggle", {Title = "Auto Collect FireFlower", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoCollectFireFlowers = Value
 end)
@@ -4934,7 +4476,7 @@ Other:AddParagraph({
         Title = "Farm Chest",
         Content = string.rep("-", 21)
 })
-ToggleChest = Other:AddToggle("ToggleChest", {Title = "Auto Chest", Default = _G[""] or false })
+ToggleChest = Other:AddToggle("ToggleChest", {Title = "Auto Chest", Default = false })
 ToggleChest:OnChanged(function(Value)
     getgenv().AutoFarmChest = Value
 end)
@@ -4963,7 +4505,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Other:AddToggle("Toggle", {Title = "Stop When Have God's Chalice& Fist Of Darkness", Default = _G[""] or false })
+Toggle = Other:AddToggle("Toggle", {Title = "Stop When Have God's Chalice& Fist Of Darkness", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().StopChest = Value
 end)
@@ -5007,7 +4549,7 @@ spawn(function()
         end)
     end
 end)
-Toggle = Other:AddToggle("Toggle", {Title = "Auto UP Observation V2", Default = _G[""] or false })
+Toggle = Other:AddToggle("Toggle", {Title = "Auto UP Observation V2", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoObservationHakiV2 = Value
     StopTween(getgenv().AutoObservationHakiV2)
@@ -5165,7 +4707,7 @@ spawn(function()
         end)
     end)
 end)
-Toggle = Other:AddToggle("Toggle", {Title = "Farm Observation", Default = _G[""] or false })
+Toggle = Other:AddToggle("Toggle", {Title = "Farm Observation", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoObservation = Value
     StopTween(getgenv().AutoObservation)
@@ -5339,7 +4881,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Other:AddToggle("Toggle", {Title = "Auto Kill All Boss", Default = _G[""] or false })
+Toggle = Other:AddToggle("Toggle", {Title = "Auto Kill All Boss", Default = false })
 Toggle:OnChanged(function(Value)    
     getgenv().AutoFarmAllBoss = Value
     StopTween(getgenv().AutoFarmAllBoss)    
@@ -5376,7 +4918,7 @@ spawn(function()
     end
 end)
 Blog = Window:AddTab({ Title = "Tab Fruit And Raid", Icon = "" })
-Toggle = Blog:AddToggle("Toggle", {Title = "Random Devil Fruit", Default = _G[""] or false })
+Toggle = Blog:AddToggle("Toggle", {Title = "Random Devil Fruit", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().RandomFruit = Value
 end)
@@ -5387,7 +4929,7 @@ spawn(function()
           end 
      end
 end)
-Toggle = Blog:AddToggle("Toggle", {Title = "Auto Store Fruit", Default = _G[""] or false })
+Toggle = Blog:AddToggle("Toggle", {Title = "Auto Store Fruit", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoStoreFruit = Value
 end)    
@@ -5505,7 +5047,7 @@ Dropdown = Blog:AddDropdown("Dropdown", {
 Dropdown:OnChanged(function(Value)
     getgenv().SelectFruit = Value
 end)    
-Toggle = Blog:AddToggle("Toggle", {Title = "Buy Blox Fruit Sniper Shop", Default = _G[""] or false })
+Toggle = Blog:AddToggle("Toggle", {Title = "Buy Blox Fruit Sniper Shop", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoBuyFruitSniper = Value
 end)
@@ -5535,7 +5077,7 @@ Dropdown = Blog:AddDropdown("Dropdown", {
 Dropdown:OnChanged(function(Value)
     getgenv().SelectChip = Value
 end)
-Toggle = Blog:AddToggle("Toggle", {Title = "Get Fruit In Inventory Low Beli", Default = _G["w"] or false})
+Toggle = Blog:AddToggle("Toggle", {Title = "Get Fruit In Inventory Low Beli", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoGetFruit = Value
 end)
@@ -5558,7 +5100,7 @@ spawn(function()
         end)
     end
 end)
-Toggle = Blog:AddToggle("Toggle", {Title = "Auto Raid", Default = _G[""] or false})
+Toggle = Blog:AddToggle("Toggle", {Title = "Auto Raid", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().Auto_Dungeon = Value
 end)
@@ -5647,7 +5189,7 @@ spawn(function()
         end)
     end
 end)
-Toggle = Blog:AddToggle("Toggle", {Title = "Auto Awaken Fruit", Default = _G["w"] or false})
+Toggle = Blog:AddToggle("Toggle", {Title = "Auto Awaken Fruit", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoAwaken = Value
 end)
@@ -5813,7 +5355,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Sea:AddToggle("Toggle", {Title = "Auto Sea Event",Default = _G[""] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Auto Sea Event",Default = false })
 Toggle:OnChanged(function(state)
     getgenv().SailBoat = state
     StopTween(getgenv().SailBoat)
@@ -6088,17 +5630,17 @@ spawn(function()
         end)
     end
 end)
-Toggle = Sea:AddToggle("Toggle", {Title = "Auto Shark",Default = _G[""] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Auto Shark",Default = false })
 Toggle:OnChanged(function(value)
    getgenv().AutoKillShark = value
    StopTween(getgenv().AutoKillShark)
 end)
-Toggle = Sea:AddToggle("Toggle", {Title = "Auto Piranha",Default = _G[""] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Auto Piranha",Default = false })
 Toggle:OnChanged(function(value)
     getgenv().AutoKillPiranha = value
     StopTween(getgenv().AutoKillPiranha)
 end)
-Toggle = Sea:AddToggle("Toggle", {Title = "Auto Fish Crew",Default = _G["w"] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Auto Fish Crew",Default = false })
 Toggle:OnChanged(function(value)
     getgenv().AutoKillFishCrew = value
     StopTween(getgenv().AutoKillFishCrew)
@@ -6218,7 +5760,7 @@ function UpDownPos(pos)
 end
 Toggle = Sea:AddToggle("Toggle", {
     Title = "Auto Ghost Ship",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(value)
     getgenv().RelzFishBoat = value
@@ -6230,7 +5772,7 @@ Toggle:OnChanged(function(value)
 end)
 Toggle = Sea:AddToggle("Toggle", {
     Title = "Auto Pirate Brigade",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(value)
     getgenv().RelzPirateBrigade = value
@@ -6238,7 +5780,7 @@ Toggle:OnChanged(function(value)
 end)
 Toggle = Sea:AddToggle("Toggle", {
     Title = "Auto Pirate Grand Brigade",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(value)
     getgenv().RelzPirateGrandBrigade = value
@@ -6280,7 +5822,7 @@ end)
    
 Toggle = Sea:AddToggle("Toggle", {
     Title = "Auto Terror Shark",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(value)
     getgenv().AutoTerrorshark = value
@@ -6288,7 +5830,7 @@ Toggle:OnChanged(function(value)
 end)
 Toggle = Sea:AddToggle("Toggle", {
     Title = "Auto Sea Beast",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(value)
     getgenv().AutoSeaBest = value
@@ -6411,7 +5953,7 @@ Sea:AddParagraph({
         Title = "Kitsune Event",
         Content = string.rep("-", 21)
     })    
-Toggle = Sea:AddToggle("Toggle", {Title = "Teleport To Kitsune Island",Default = _G[""] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Teleport To Kitsune Island",Default = false })
 Toggle:OnChanged(function(value)
     getgenv().TweenToKitsune = value
     StopTween(getgenv().TweenToKitsune)
@@ -6428,7 +5970,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Sea:AddToggle("Toggle", {Title = "Auto Summon Soul EmBer",Default = _G[""] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Auto Summon Soul EmBer",Default = false })
 Toggle:OnChanged(function(value)
     getgenv().SummonKitsume = value    
 end)
@@ -6446,7 +5988,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Sea:AddToggle("Toggle", {Title = "Auto Collect Azure Wisp",Default = _G[""] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Auto Collect Azure Wisp",Default = false })
 Toggle:OnChanged(function(value)
     getgenv().CollectAzure = value
     StopTween(getgenv().CollectAzure)
@@ -6483,7 +6025,7 @@ Slider = Sea:AddSlider("Slider", {
 })
 Toggle = Sea:AddToggle("Toggle", {
     Title = "Auto Trade Azure Ember",
-    Default = _G[""] or false,
+    Default = false,
     Callback = function (state)
         getgenv().TradeAureEmber = state
     end
@@ -6528,7 +6070,7 @@ Sea:AddButton({
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("InfoLeviathan", "2")
     end
 })    
-Toggle = Sea:AddToggle("Toggle", {Title = "Teleport To Frozen Dimension", Default = _G[""] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Teleport To Frozen Dimension", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoFrozenDimension = Value
 end)
@@ -6548,7 +6090,7 @@ task.spawn(function()
         end)
     end
 end)
-Toggle = Sea:AddToggle("Toggle", {Title = "Auto Attack Leviathan", Default = _G[""] or false })
+Toggle = Sea:AddToggle("Toggle", {Title = "Auto Attack Leviathan", Default = false })
 Toggle:OnChanged(function(state)
     getgenv().KillLevi = state
 end)
@@ -6646,14 +6188,14 @@ Toggle:OnChanged(function(value)
 end)
 Toggle = ChooseSkill:AddToggle("Toggle", {
     Title = "Skill Fruit V",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(value)
     getgenv().SkillFruitV = value
 end)
 Toggle = ChooseSkill:AddToggle("Toggle", {
     Title = "Skill Fruit F",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(value)
     getgenv().SkillFruitF = value
@@ -6792,7 +6334,7 @@ Volcanic:AddButton({
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer(unpack(v395))
     end
 })
-Toggle = Volcanic:AddToggle("MyToggle", {Title = "Teleport Prehistoric Island", Default = _G[""] or false })
+Toggle = Volcanic:AddToggle("MyToggle", {Title = "Teleport Prehistoric Island", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().TweenPrehistoric = Value
 end)
@@ -6818,7 +6360,7 @@ spawn(function()
 end)
 Toggle = Volcanic:AddToggle("Toggle", {
     Title = "Auto Event Volcano Island Defense",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(value)
     getgenv().AutoDefendVolcano = value
@@ -6913,7 +6455,7 @@ spawn(function()
 end)
 Toggle = Volcanic:AddToggle("Toggle", {
     Title = "Auto Kill Aura Golems",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(v413)
     getgenv().KillAura = v413
@@ -6935,7 +6477,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Volcanic:AddToggle("Toggle", {Title = "Auto Collect Bone", Default = _G[""] or false })
+Toggle = Volcanic:AddToggle("Toggle", {Title = "Auto Collect Bone", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().CollectBone = Value
 end)
@@ -6963,7 +6505,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Volcanic:AddToggle("Toggle", {Title = "Auto Collect Egg", Default = _G[""] or false })
+Toggle = Volcanic:AddToggle("Toggle", {Title = "Auto Collect Egg", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().CollectEgg = Value
 end)
@@ -6996,21 +6538,21 @@ Volcanic:AddParagraph({
 })
 Toggle = Volcanic:AddToggle("Toggle", {
     Title = "Auto Use Skill Melee",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(v402)
     getgenv().UseMelee = v402
 end)
 Toggle = Volcanic:AddToggle("Toggle", {
     Title = "Auto Use Skill Sword",
-    Default = _G["w"] or false
+    Default = false
 })
 Toggle:OnChanged(function(v403)
     getgenv().UseSword = v403
 end)
 Toggle = Volcanic:AddToggle("Toggle", {
     Title = "Auto Use Skill Gun",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(v404)
     getgenv().UseGun = v404
@@ -7021,7 +6563,7 @@ Race:AddParagraph({
     Content = string.rep("-", 21)
 })
 local RunService = game:GetService("RunService")
-Toggle = Race:AddToggle("Toggle", {Title = "Teleport To The Draco Clan Trial Door", Default = _G[""] or false})
+Toggle = Race:AddToggle("Toggle", {Title = "Teleport To The Draco Clan Trial Door", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().TrialTeleportDraco = Value
 end)
@@ -7045,7 +6587,7 @@ Race:AddParagraph({
     Title = "Race Normal",
     Content = string.rep("-", 21)
 })
-Toggle = Race:AddToggle("Toggle", {Title = "Auto Upgrade Race V2", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", {Title = "Auto Upgrade Race V2", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().UpgradeRaceV2 = Value
 end)
@@ -7159,7 +6701,7 @@ spawn(function()
         end
     end)
 end)
-Toggle = Race:AddToggle("Toggle", {Title = "Auto Get Ghoul", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", {Title = "Auto Get Ghoul", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoGhoul = Value
 end)
@@ -7195,7 +6737,7 @@ Race:AddParagraph({
     Title = "Race V4",
     Content = string.rep("-", 21)
 })
-Toggle = Race:AddToggle("Toggle", {Title = "No Frog", Default = _G[""] or false})
+Toggle = Race:AddToggle("Toggle", {Title = "No Frog", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().NoFrog = Value
 end)
@@ -7218,7 +6760,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Race:AddToggle("Toggle", {Title = "Teleport Ancient Clock", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", {Title = "Teleport Ancient Clock", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().TeleportAcientClock = Value
     StopTween(getgenv().TeleportAcientClock)
@@ -7231,7 +6773,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Race:AddToggle("Toggle", {Title = "Auto Buy Gear", Default = _G[""] or false})
+Toggle = Race:AddToggle("Toggle", {Title = "Auto Buy Gear", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoBuyGear = Value    
 end)
@@ -7247,7 +6789,7 @@ spawn(function()
         end
     end)
 end)
-local Toggle = Race:AddToggle("Toggle", {Title = "Auto Finish Train Quest", Default = _G[""] or false})
+local Toggle = Race:AddToggle("Toggle", {Title = "Auto Finish Train Quest", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().Race_1 = Value
     getgenv().QuestTrain_2 = Value
@@ -7363,7 +6905,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Race:AddToggle("Toggle", { Title = "Teleport To Migare Island", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", { Title = "Teleport To Migare Island", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().TeleportMigare = Value
     StopTween(getgenv().TeleportMigare)
@@ -7384,7 +6926,7 @@ spawn(function()
         end
     end)
 end)
-Toggle = Race:AddToggle("Toggle", { Title = "Teleport To Highest Point", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", { Title = "Teleport To Highest Point", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().Tweentohighestpoint = Value
     if not Value then
@@ -7404,7 +6946,7 @@ Toggle:OnChanged(function(Value)
         end
     end)
 end)
-Toggle = Race:AddToggle("Toggle", { Title = "Teleport To Advanced Fruit Dealer", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", { Title = "Teleport To Advanced Fruit Dealer", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().TeleportAdvancedFruitDealer = Value
     if not Value then
@@ -7432,7 +6974,7 @@ Toggle:OnChanged(function(Value)
         end
     end)
 end)
-Toggle = Race:AddToggle("Toggle", { Title = "Lock Moon And On Race V3", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", { Title = "Lock Moon And On Race V3", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().LockMoonAndOnRaceV3 = Value
     if not Value then
@@ -7463,7 +7005,7 @@ Toggle:OnChanged(function(Value)
         end
     end)
 end)
-Toggle = Race:AddToggle("Toggle", { Title = "Teleport To Blue Gear", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", { Title = "Teleport To Blue Gear", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().TeleportToGear = Value
     StopTween(getgenv().TeleportToGear)
@@ -7502,7 +7044,7 @@ Race:AddButton({
         end
     end
 })
-Toggle = Race:AddToggle("Toggle", {Title = "Auto Trial Race", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", {Title = "Auto Trial Race", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoTrialRace = Value
     StopTween(getgenv().AutoTrialRace)
@@ -7590,7 +7132,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Race:AddToggle("Toggle", {Title = "Auto Kill Player After Trial V4", Default = _G[""] or false })
+Toggle = Race:AddToggle("Toggle", {Title = "Auto Kill Player After Trial V4", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoKillPlayerAfterTrial = Value
     StopTween(getgenv().AutoKillPlayerAfterTrial)
@@ -7630,7 +7172,7 @@ spawn(function()
     end
 end)
 Get = Window:AddTab({ Title = "Tab Get Items And Buy", Icon = "" })
-Toggle = Get:AddToggle("Toggle", {Title = "Auto Trade Bone", Default = _G[""] or false})
+Toggle = Get:AddToggle("Toggle", {Title = "Auto Trade Bone", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoTradeBone = Value
 end)
@@ -7659,7 +7201,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Get:AddToggle("Toggle", {Title = "Auto Buy Legendary Sword", Default = _G["w"] or false})
+Toggle = Get:AddToggle("Toggle", {Title = "Auto Buy Legendary Sword", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoBuyLegendarySword = Value
 end)
@@ -7684,7 +7226,7 @@ spawn(function()
 end)
 Toggle = Get:AddToggle("Toggle", {
     Title = "Auto Buy Haki Color",
-    Default = _G[""] or false })
+    Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().Auto_Buy_Enchancement = Value
 end)
@@ -7710,7 +7252,7 @@ end)
 local isHopping = false
 Toggle = Get:AddToggle("Toggle", {
     Title = "Hop Server [ Haki color or Legendary Sword]",
-    Default = _G["w"] or false
+    Default = false
 })
 Toggle:OnChanged(function(state)
     isHopping = state
@@ -7718,7 +7260,7 @@ Toggle:OnChanged(function(state)
         Hop()
     end
 end)
-Toggle = Get:AddToggle("Toggle", {Title = "Auto Get Rainbow Haki", Default = _G["w"] or false})
+Toggle = Get:AddToggle("Toggle", {Title = "Auto Get Rainbow Haki", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoRainbowHaki = Value
 end)
@@ -7775,7 +7317,7 @@ spawn(function()
         end
     end)
 end)
-Toggle = Get:AddToggle("Toggle", {Title = "Auto Skull Guitar", Default = _G[""] or false})
+Toggle = Get:AddToggle("Toggle", {Title = "Auto Skull Guitar", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoSkullGuitar = Value
 end)
@@ -7929,7 +7471,7 @@ task.spawn(function()
         end)
     end
 end)
-Toggle = Get:AddToggle("Toggle", {Title = "Auto Yama", Default = _G[""] or false})
+Toggle = Get:AddToggle("Toggle", {Title = "Auto Yama", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoYama = Value
 end)
@@ -7956,7 +7498,7 @@ spawn(function()
         end)
     end
 end)
-Toggle = Get:AddToggle("Toggle", {Title = "Auto Tushita", Default = _G[""] or false})
+Toggle = Get:AddToggle("Toggle", {Title = "Auto Tushita", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoTushita = Value
 end)
@@ -8006,7 +7548,7 @@ spawn(function()
         end
     end
 end)
-Toggle = Get:AddToggle("Toggle", {Title = "Auto Saber", Default = _G[""] or false})
+Toggle = Get:AddToggle("Toggle", {Title = "Auto Saber", Default = false})
 Toggle:OnChanged(function(Value)
     getgenv().AutoSaber = Value
 end)
@@ -8158,7 +7700,7 @@ function UpdateIslandESP()
         end
     end
 end
-Toggle = ESP:AddToggle("Toggle", {Title = "ESP Island", Default = _G[""] or false })
+Toggle = ESP:AddToggle("Toggle", {Title = "ESP Island", Default = false })
 Toggle:OnChanged(function(Value)
     IslandESP = Value
     if IslandESP then
@@ -8226,7 +7768,7 @@ function UpdateDevilChams()
         end)
     end
 end
-Toggle = ESP:AddToggle("Toggle", {Title = "ESP Fruit", Default = _G[""] or false })
+Toggle = ESP:AddToggle("Toggle", {Title = "ESP Fruit", Default = false })
 Toggle:OnChanged(function(Value)
     DevilFruitESP = Value
     if DevilFruitESP then
@@ -8302,7 +7844,7 @@ function UpdatePlayerChams()
         end)
     end
 end
-Toggle = ESP:AddToggle("Toggle", {Title = "ESP Player", Default = _G[""] or false })
+Toggle = ESP:AddToggle("Toggle", {Title = "ESP Player", Default = false })
 Toggle:OnChanged(function(Value)
     ESPPlayer = Value
     if ESPPlayer then
@@ -8341,7 +7883,7 @@ Dropdown:OnChanged(function(Value)
 end)
 Toggle = PVP:AddToggle("MyToggle", {
     Title = "Teleport Player",
-    Default = _G[""] or false
+    Default = false
 })
 Toggle:OnChanged(function(Value)
     getgenv().TeleportPlayer = Value
@@ -8360,7 +7902,7 @@ Toggle:OnChanged(function(Value)
         end)
     end
 end)
-Toggle = PVP:AddToggle("Toggle", {Title = "Auto Aimbot", Default = _G[""] or false })
+Toggle = PVP:AddToggle("Toggle", {Title = "Auto Aimbot", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().Aimbot = Value
 end)        
@@ -8384,7 +7926,7 @@ spawn(function()
         end
     end)
 end)
-Toggle = PVP:AddToggle("Toggle", {Title = "Auto Aimbot Gun", Default = _G[""] or false })
+Toggle = PVP:AddToggle("Toggle", {Title = "Auto Aimbot Gun", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AimbotGun = Value
 end)        
@@ -8412,7 +7954,7 @@ spawn(function()
         end
     end
 end)
-Toggle = PVP:AddToggle("Toggle", {Title = "Safe Modes", Default = _G[""] or false })
+Toggle = PVP:AddToggle("Toggle", {Title = "Safe Modes", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().SafeMode = Value
 end)
@@ -8454,7 +7996,7 @@ Toggle:OnChanged(function(Value)
         waterPlane.Size = Vector3.new(1000, 80, 1000)
     end
 end)
-Toggle = PVP:AddToggle("Toggle", {Title = "No Clip", Default = _G[""] or false })
+Toggle = PVP:AddToggle("Toggle", {Title = "No Clip", Default = false })
 Toggle:OnChanged(function(v)
     getgenv().NoClip = v
     if getgenv().NoClipConnection then getgenv().NoClipConnection:Disconnect() end
@@ -8475,7 +8017,7 @@ local Player = Players.LocalPlayer
 getgenv().WalkSpeed = 16
 Toggle = PVP:AddToggle("Toggle", {
     Title = "Change WalkSpeed",
-    Default = _G[""] or false
+    Default = false
 })
 local SpeedConnection
 local function ApplySpeed()
