@@ -710,7 +710,7 @@ function CheckQuest()
             NameQuest = "FishmanQuest"
             NameMon = "Fishman Commando"
             CFrameQuest = CFrame.new(61122.65234375, 18.497442245483, 1569.3997802734)
-            CFrameMon = CFrame.new(61922.6328125, 18.482830047607422, 1493.934326171875)
+            CFrameMon = CFrame.new(61785.9023, 18.0800018, 1284.11096, -0.410564542, 0, -0.911831498, 0, 1, 0, 0.911831498, 0, -0.410564542)
             if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance",Vector3.new(61163.8515625, 11.6796875, 1819.7841796875))
             end
