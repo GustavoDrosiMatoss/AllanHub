@@ -720,7 +720,7 @@ function CheckQuest()
             NameQuest = "SkyExp1Quest"
             NameMon = "God's Guard"
             CFrameQuest = CFrame.new(-4721.88867, 843.874695, -1949.96643, 0.996191859, -0, -0.0871884301, 0, 1, -0, 0.0871884301, 0, 0.996191859)
-            CFrameMon = CFrame.new(-4710.04296875, 845.2769775390625, -1927.3079833984375)
+            CFrameMon = CFrame.new(-4830.60889, 844.13501, -1779.09094, 0.669109941, -0, -0.743163466, 0, 1, -0, 0.743163466, 0, 0.669109941)
             if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance",Vector3.new(-4607.82275, 872.54248, -1667.55688))
             end
@@ -730,7 +730,7 @@ function CheckQuest()
             NameQuest = "SkyExp1Quest"
             NameMon = "Shanda"
             CFrameQuest = CFrame.new(-7859.09814, 5544.19043, -381.476196, -0.422592998, 0, 0.906319618, 0, 1, 0, -0.906319618, 0, -0.422592998)
-            CFrameMon = CFrame.new(-7678.48974609375, 5566.40380859375, -497.2156066894531)
+            CFrameMon = CFrame.new(-7595.15381, 5546.34082, -653.557007, -0.906296611, 0, 0.422642082, 0, 1, 0, -0.422642082, 0, -0.906296611)
             if getgenv().AutoFarm and (CFrameQuest.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude > 10000 then
                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance",Vector3.new(-7894.6176757813, 5547.1416015625, -380.29119873047))
             end
@@ -740,28 +740,28 @@ function CheckQuest()
             NameQuest = "SkyExp2Quest"
             NameMon = "Royal Squad"
             CFrameQuest = CFrame.new(-7906.81592, 5634.6626, -1411.99194, 0, 0, -1, 0, 1, 0, 1, 0, 0)
-            CFrameMon = CFrame.new(-7624.25244140625, 5658.13330078125, -1467.354248046875)
+            CFrameMon = CFrame.new(-7724.9502, 5606.93701, -1511.01294, -0.996191859, 0, 0.0871884301, 0, 1, 0, -0.0871884301, 0, -0.996191859)
         elseif MyLevel >= 550 and MyLevel <= 624 then
             Mon = "Royal Soldier"
             LevelQuest = 2
             NameQuest = "SkyExp2Quest"
             NameMon = "Royal Soldier"
             CFrameQuest = CFrame.new(-7906.81592, 5634.6626, -1411.99194, 0, 0, -1, 0, 1, 0, 1, 0, 0)
-            CFrameMon = CFrame.new(-7836.75341796875, 5645.6640625, -1790.6236572265625)
+            CFrameMon = CFrame.new(-7946.9502, 5606.93701, -1824.01294, -0.173624277, 0, -0.984811902, 0, 1, 0, 0.984811902, 0, -0.173624277)
         elseif MyLevel >= 625 and MyLevel <= 649 then
             Mon = "Galley Pirate"
             LevelQuest = 1
             NameQuest = "FountainQuest"
             NameMon = "Galley Pirate"
             CFrameQuest = CFrame.new(5259.81982, 37.3500175, 4050.0293, 0.087131381, 0, 0.996196866, 0, 1, 0, -0.996196866, 0, 0.087131381)
-            CFrameMon = CFrame.new(5551.02197265625, 78.90135192871094, 3930.412841796875)
+            CFrameMon = CFrame.new(5348.2832, 39.348999, 3953.25488, -0.573599219, 0, -0.81913656, 0, 1, 0, 0.81913656, 0, -0.573599219)
         elseif MyLevel >= 650 then
             Mon = "Galley Captain"
             LevelQuest = 2
             NameQuest = "FountainQuest"
             NameMon = "Galley Captain"
             CFrameQuest = CFrame.new(5259.81982, 37.3500175, 4050.0293, 0.087131381, 0, 0.996196866, 0, 1, 0, -0.996196866, 0, 0.087131381)
-            CFrameMon = CFrame.new(5441.95166015625, 42.50205993652344, 4950.09375)
+            CFrameMon = CFrame.new(5792.354, 58.9349976, 4823.92285, -0.939700961, 0, -0.341998369, 0, 1, 0, 0.341998369, 0, -0.939700961)
         end
     elseif World2 then
         if MyLevel >= 700 and MyLevel <= 724 then
