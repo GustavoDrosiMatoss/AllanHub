@@ -144,7 +144,7 @@ function CheckQuest()
             NameQuest = "BuggyQuest1"
             NameMon = "Brute"
             CFrameQuest = CFrame.new(-1141.07483, 4.10001802, 3831.5498, 0.965929627, -0, -0.258804798, 0, 1, -0, 0.258804798, 0, 0.965929627)
-            CFrameMon = CFrame.new(-1140.083740234375, 14.809885025024414, 4322.92138671875)
+            CFrameMon = CFrame.new(-862.890015, 15.6000061, 4281.95605, 0.374604106, 0, 0.92718488, 0, 1, 0, -0.92718488, 0, 0.374604106)
         elseif MyLevel >= 60 and MyLevel <= 74 then
             Mon = "Desert Bandit"
             LevelQuest = 1
