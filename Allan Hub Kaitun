@@ -3797,7 +3797,7 @@ spawn(function()
                 if admiral and admiral:FindFirstChild("HumanoidRootPart") then
                     -- usa a lógica de farm normal do hub
                     -- (teleporta e bate como se fosse AutoFarm)
-                    char.HumanoidRootPart.CFrame = admiral.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
+                    char.HumanoidRootPart.CFrame = admiral.HumanoidRootPart.CFrame * CFrame.new(1266.08899, 26.8099976, -1399.58105, -0.573599219, 0, -0.81913656, 0, 1, 0, 0.81913656, 0, -0.573599219)
                     -- exemplo: pode usar uma função do hub, se existir
                     if typeof(FarmMob) == "function" then
                         FarmMob("Ice Admiral [Lv. 700] [Boss]")
