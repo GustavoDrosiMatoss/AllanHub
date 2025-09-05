@@ -34,7 +34,7 @@ local Tabs = {}
 
 -- [[ Single Fluent Window & Tabs bootstrap ]]
 local Fluent = loadFluent()
-local -- [[disabled]] duplicate Window creation
+-- [[disabled]] duplicate Window creation
 
 local function EnsureTab(key, title)
     if not Tabs[key] then
