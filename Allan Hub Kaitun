@@ -8618,3 +8618,191 @@ local ok, err = pcall(function()
 end)
 if not ok then warn("[AllanHub] Erro ao carregar original:", err) end
 end
+
+
+-- ==============================
+-- AUTO GOD HUMAN INTEGRADO
+-- ==============================
+-- ==============================
+-- FUNÇÃO DE FARM DE MATERIAIS (integrada)
+-- ==============================
+function MaterialMon()
+    local player = game.Players.LocalPlayer
+    local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+
+    local function shouldRequestEntrance(targetPosition, distanceThreshold)
+        local distance = (humanoidRootPart.Position - targetPosition).Magnitude
+        if distance >= distanceThreshold then
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", targetPosition)
+        end
+    end
+
+    if World1 then
+        if SelectMaterial == "Fish Tail" then
+            MMon = { "Fishman Warrior", "Fishman Commando", "Fishman Lord" }
+            MPos = CFrame.new(61123, 19, 1569)
+            SP = "Default"
+            shouldRequestEntrance(Vector3.new(61163.8515, 5.3423, 1819.7841), 17000)
+        elseif SelectMaterial == "Magma Ore" then
+            MMon = { "Military Soldier", "Military Spy", "Magma Admiral" }
+            MPos = CFrame.new(-5815, 84, 8820)
+            SP = "Default"
+        end
+    elseif World2 then
+        if SelectMaterial == "Mystic Droplet" then
+            MMon = { "Water Fighter" }
+            MPos = CFrame.new(-3385, 239, -10542)
+            SP = "Default"
+        end
+    elseif World3 then
+        if SelectMaterial == "Dragon Scale" then
+            MMon = { "Dragon Crew Warrior" }
+            MPos = CFrame.new(6594, 383, 139)
+            SP = "Default"
+        end
+    end
+end
+
+-- ==============================
+-- FUNÇÕES DE DESBLOQUEIO DE ESTILOS
+-- ==============================
+function UnlockStyle(style)
+    local CommF = game:GetService("ReplicatedStorage").Remotes.CommF_
+    local char = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+
+    if style == "Death Step" then
+        CommF:InvokeServer("BuyDeathStep")
+
+    elseif style == "Sharkman Karate" then
+        CommF:InvokeServer("BuySharkmanKarate")
+
+    elseif style == "Electric Claw" then
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        local pos1 = Vector3.new(3000, 300, 3000)
+        local pos2 = Vector3.new(-3000, 300, -3000)
+        local distance = 0
+
+        while distance < 5000 and getgenv().AutoGodHuman do
+            task.wait(0.2)
+            hrp.CFrame = CFrame.new(pos1)
+            task.wait(0.2)
+            hrp.CFrame = CFrame.new(pos2)
+            distance = distance + (pos1 - pos2).Magnitude
+        end
+
+        CommF:InvokeServer("BuyElectricClaw")
+
+    elseif style == "Dragon Talon" then
+        CommF:InvokeServer("BuyDragonTalon")
+    end
+end
+
+-- ==============================
+-- FUNÇÃO AUTO GOD HUMAN COMPLETA
+-- ==============================
+function AutoFightStylesAndGodHuman()
+    spawn(function()
+        while getgenv().AutoGodHuman do
+            task.wait(1)
+
+            local player = game.Players.LocalPlayer
+            local backpack = player.Backpack
+            local char = player.Character
+            local CommF = game:GetService("ReplicatedStorage").Remotes.CommF_
+
+            local function trainStyle(styleName, requiredLevel)
+                local tool = backpack:FindFirstChild(styleName) or char:FindFirstChild(styleName)
+                if tool and tool:FindFirstChild("Level") then
+                    if tool.Level.Value < requiredLevel then
+                        SelectToolWeapon = styleName
+                        return true
+                    end
+                end
+                return false
+            end
+
+            if backpack:FindFirstChild("Combat") or char:FindFirstChild("Combat") then
+                CommF:InvokeServer("BuyBlackLeg")
+                return
+            end
+            if trainStyle("Black Leg",300) then return end
+            if trainStyle("Electro",300) then return end
+            if trainStyle("Fishman Karate",300) then return end
+            if trainStyle("Dragon Claw",300) then return end
+
+            if backpack:FindFirstChild("Black Leg") and backpack.BlackLeg.Level.Value >= 300 then
+                CommF:InvokeServer("BuyElectro")
+                return
+            end
+            if backpack:FindFirstChild("Electro") and backpack.Electro.Level.Value >= 300 then
+                CommF:InvokeServer("BuyFishmanKarate")
+                return
+            end
+            if backpack:FindFirstChild("Fishman Karate") and backpack["Fishman Karate"].Level.Value >= 300 then
+                CommF:InvokeServer("BlackbeardReward","DragonClaw","2")
+                return
+            end
+            if backpack:FindFirstChild("Dragon Claw") and backpack["Dragon Claw"].Level.Value >= 300 then
+                CommF:InvokeServer("BuySuperhuman")
+                return
+            end
+
+            if not (backpack:FindFirstChild("Sharkman Karate") or char:FindFirstChild("Sharkman Karate")) then
+                UnlockStyle("Sharkman Karate")
+                return
+            end
+            if not (backpack:FindFirstChild("Death Step") or char:FindFirstChild("Death Step")) then
+                UnlockStyle("Death Step")
+                return
+            end
+            if not (backpack:FindFirstChild("Electric Claw") or char:FindFirstChild("Electric Claw")) then
+                UnlockStyle("Electric Claw")
+                return
+            end
+            if not (backpack:FindFirstChild("Dragon Talon") or char:FindFirstChild("Dragon Talon")) then
+                UnlockStyle("Dragon Talon")
+                return
+            end
+
+            if trainStyle("Superhuman",400) then return end
+            if trainStyle("Sharkman Karate",400) then return end
+            if trainStyle("Death Step",400) then return end
+            if trainStyle("Electric Claw",400) then return end
+            if trainStyle("Dragon Talon",400) then return end
+
+            local materials = {
+                {name="Fish Tail", need=20},
+                {name="Magma Ore", need=20},
+                {name="Dragon Scale", need=10},
+                {name="Mystic Droplet", need=10},
+            }
+
+            for _, mat in ipairs(materials) do
+                local inv = player.Backpack:FindFirstChild(mat.name) or player.Character:FindFirstChild(mat.name)
+                local amount = inv and inv.Value or 0
+                if amount < mat.need then
+                    SelectMaterial = mat.name
+                    MaterialMon()
+                    return
+                end
+            end
+
+            CommF:InvokeServer("BuyGodHuman")
+        end
+    end)
+end
+
+-- ==============================
+-- BOTÃO NA ABA FARM
+-- ==============================
+FarmTab:AddToggle({
+    Name = "Auto God Human",
+    Default = false,
+    Callback = function(Value)
+        getgenv().AutoGodHuman = Value
+        if Value then
+            AutoFightStylesAndGodHuman()
+        end
+    end    
+})
