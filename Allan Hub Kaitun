@@ -3765,61 +3765,64 @@ Toggle:OnChanged(function(Value)
     StopTween(getgenv().AutoNewWorld)
 end)
 spawn(function()
-    while task.wait(0.1) do
-        if getgenv().AutoNewWorld and World1 then
-            spawn(function()
-                local player = game:GetService("Players").LocalPlayer
-                local workspace = game:GetService("Workspace")
-                local replicatedStorage = game:GetService("ReplicatedStorage")
-                local myLevel = player.Data.Level.Value
-                if myLevel >= 700 and World1 then
-                    local iceDoor = workspace.Map.Ice.Door
-                    if iceDoor.CanCollide == false and iceDoor.Transparency == 1 then
-                        local cframe1 = CFrame.new(4849.29883, 5.65138149, 719.611877)
-                        repeat
-                            topos(cframe1)
-                            task.wait(0.1)
-                        until (cframe1.Position - player.Character.HumanoidRootPart.Position).Magnitude <= 3 or not getgenv().AutoNewWorld
-                        task.wait(1.1)
-                        replicatedStorage.Remotes.CommF_:InvokeServer("DressrosaQuestProgress", "Detective")
-                        task.wait(0.1)
-                        EquipWeapon("Key")
-                        local targetCFrame = CFrame.new(1347.7124, 37.3751602, -1325.6488)
-                        repeat
-                            topos(targetCFrame)
-                            task.wait(0.1)
-                        until (targetCFrame.Position - player.Character.HumanoidRootPart.Position).Magnitude <= 3 or not getgenv().AutoNewWorld
-                        task.wait(0.1)
+    while task.wait(2) do
+        if _G.AutoNewWorld then
+            pcall(function()
+                local player = game.Players.LocalPlayer
+                local char = player.Character or player.CharacterAdded:Wait()
+                local Rep = game:GetService("ReplicatedStorage")
+                local CommF_ = Rep.Remotes.CommF_
+
+                -- só continua se for lvl 700+
+                if player.Data.Level.Value < 700 then return end
+
+                -- progresso da quest Dressrosa
+                local progress = CommF_:InvokeServer("DressrosaQuestProgress","Dressrosa")
+
+                -- 1) falar com Detetive (pegar a key se não tiver)
+                if not player.Backpack:FindFirstChild("Key") and not char:FindFirstChild("Key") then
+                    CommF_:InvokeServer("StartQuest","Detective") -- força diálogo
+                end
+
+                -- 2) se tiver a chave → abrir Ice Door
+                if player.Backpack:FindFirstChild("Key") or char:FindFirstChild("Key") then
+                    local door = workspace.Map.Ice:FindFirstChild("Door")
+                    if door and door:FindFirstChild("ClickDetector") then
+                        fireclickdetector(door.ClickDetector)
+                    end
+                end
+
+                -- 3) se Ice Admiral existir → atacar
+                local admiral = workspace.Enemies:FindFirstChild("Ice Admiral [Lv. 700] [Boss]")
+                if admiral and admiral:FindFirstChild("HumanoidRootPart") then
+                    -- usa a lógica de farm normal do hub
+                    -- (teleporta e bate como se fosse AutoFarm)
+                    char.HumanoidRootPart.CFrame = admiral.HumanoidRootPart.CFrame * CFrame.new(0, 10, 0)
+                    -- exemplo: pode usar uma função do hub, se existir
+                    if typeof(FarmMob) == "function" then
+                        FarmMob("Ice Admiral [Lv. 700] [Boss]")
                     else
-                        if workspace.Enemies:FindFirstChild("Ice Admiral [Lv. 700] [Boss]") then
-                            for _, v in pairs(workspace.Enemies:GetChildren()) do
-                                if v.Name == "Ice Admiral" and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") then
-                                    local oldCFrameSecond = v.HumanoidRootPart.CFrame
-                                    repeat
-                                        task.wait(0.05)
-                                        AutoHaki()
-                                        EquipWeapon(getgenv().SelectWeapon)
-                                        v.HumanoidRootPart.CanCollide = false
-                                        v.Humanoid.WalkSpeed = 0
-                                        v.Head.CanCollide = false
-                                        v.HumanoidRootPart.CFrame = oldCFrameSecond
-                                        topos(v.HumanoidRootPart.CFrame * Pos)
-                                    until not getgenv().AutoNewWorld or not v.Parent or v.Humanoid.Health <= 0
-                                end
-                            end
-                        else
-                            if replicatedStorage:FindFirstChild("Ice Admiral") then
-                                topos(replicatedStorage:FindFirstChild("Ice Admiral").HumanoidRootPart.CFrame * CFrame.new(5, 10, 7))
-                            else
-                                replicatedStorage.Remotes.CommF_:InvokeServer("TravelDressrosa")
-                            end
-                        end
+                        CommF_:InvokeServer("Attack", admiral)
+                    end
+                end
+
+                -- 4) depois de matar → falar com Detetive
+                if progress == 1 or progress == 2 then
+                    CommF_:InvokeServer("TalkDetective")
+                end
+
+                -- 5) se já concluiu etapas → tenta abrir de novo a porta
+                if progress >= 3 then
+                    local door = workspace.Map.Ice:FindFirstChild("Door")
+                    if door and door:FindFirstChild("ClickDetector") then
+                        fireclickdetector(door.ClickDetector)
                     end
                 end
             end)
         end
     end
 end)
+
 Toggle = Stack:AddToggle("Toggle", {Title = "Auto Third World", Default = false })
 Toggle:OnChanged(function(Value)
     getgenv().AutoThirdSea = Value
