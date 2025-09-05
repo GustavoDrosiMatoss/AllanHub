@@ -31,23 +31,7 @@ end
 
 -- Removido GUI duplicada de Allan Gostoso
 local Tabs = {}
-
-Tabs["Tab_Shop"] = Window:AddTab({ Title = "Tab Shop" })
-Tabs["Tab_Status_And_Server"] = Window:AddTab({ Title = "Tab Status And Server" })
-Tabs["Tab_Local_Player"] = Window:AddTab({ Title = "Tab Local Player" })
-Tabs["Setting_Farm"] = Window:AddTab({ Title = "Setting Farm" })
-Tabs["Tab_Farming"] = Window:AddTab({ Title = "Tab Farming" })
-Tabs["Tab_Stack_Farm"] = Window:AddTab({ Title = "Tab Stack Farm" })
-Tabs["Tab_Farming_Other"] = Window:AddTab({ Title = "Tab Farming Other" })
-Tabs["Tab_Fruit_And_Raid"] = Window:AddTab({ Title = "Tab Fruit And Raid" })
-Tabs["Tab_Sea_Event"] = Window:AddTab({ Title = "Tab Sea Event" })
-Tabs["Tab_Setting_Select_Skill"] = Window:AddTab({ Title = "Tab Setting Select Skill" })
-Tabs["Tab_Volcanic_Event"] = Window:AddTab({ Title = "Tab Volcanic Event" })
-Tabs["Tab_Upgrade_Race"] = Window:AddTab({ Title = "Tab Upgrade Race" })
-Tabs["Tab_Get_Items_And_Buy"] = Window:AddTab({ Title = "Tab Get Items And Buy" })
-Tabs["Tab_ESP"] = Window:AddTab({ Title = "Tab ESP" })
-Tabs["Tab_PVP"] = Window:AddTab({ Title = "Tab PVP" })
-
+-- [Removido] Bloco de Tabs antecipado (antes de Window existir)
 -- Helpers e mapeamento de flags
 
 
@@ -92,6 +76,8 @@ local function setflag(name, v)
     if getgenv then pcall(function() getgenv()[name] = v end) end
     pcall(function() shared[name] = v end)
     _G[name] = v
+    SaveConfig()  -- salva automaticamente ao mudar a flag
+
 end
 
 local known_flags = {
