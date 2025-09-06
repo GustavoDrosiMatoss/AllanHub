@@ -37,24 +37,23 @@ local Window = Fluent:CreateWindow({
 
 local Tabs = {}
 
-Tabs["Tab_Shop"] = Window:AddTab({ Title = "Tab Shop" })
-Tabs["Tab_Status_And_Server"] = Window:AddTab({ Title = "Tab Status And Server" })
+-- removed tab Tab_Shop
+-- removed tab Tab_Status_And_Server
 Tabs["Tab_Local_Player"] = Window:AddTab({ Title = "Tab Local Player" })
-Tabs["Setting_Farm"] = Window:AddTab({ Title = "Setting Farm" })
+-- removed tab Setting_Farm
 Tabs["Tab_Farming"] = Window:AddTab({ Title = "Tab Farming" })
 Tabs["Tab_Stack_Farm"] = Window:AddTab({ Title = "Tab Stack Farm" })
-Tabs["Tab_Farming_Other"] = Window:AddTab({ Title = "Tab Farming Other" })
+-- removed tab Tab_Farming_Other
 Tabs["Tab_Fruit_And_Raid"] = Window:AddTab({ Title = "Tab Fruit And Raid" })
-Tabs["Tab_Sea_Event"] = Window:AddTab({ Title = "Tab Sea Event" })
-Tabs["Tab_Setting_Select_Skill"] = Window:AddTab({ Title = "Tab Setting Select Skill" })
-Tabs["Tab_Volcanic_Event"] = Window:AddTab({ Title = "Tab Volcanic Event" })
-Tabs["Tab_Upgrade_Race"] = Window:AddTab({ Title = "Tab Upgrade Race" })
-Tabs["Tab_Get_Items_And_Buy"] = Window:AddTab({ Title = "Tab Get Items And Buy" })
-Tabs["Tab_ESP"] = Window:AddTab({ Title = "Tab ESP" })
-Tabs["Tab_PVP"] = Window:AddTab({ Title = "Tab PVP" })
+-- removed tab Tab_Sea_Event
+-- removed tab Tab_Setting_Select_Skill
+-- removed tab Tab_Volcanic_Event
+-- removed tab Tab_Upgrade_Race
+-- removed tab Tab_Get_Items_And_Buy
+-- removed tab Tab_ESP
+-- removed tab Tab_PVP
 
 -- Helpers e mapeamento de flags
-
 
 local function _normalize(s)
     s = string.lower(s or "")
@@ -260,34 +259,34 @@ local function match_and_set(toggle_id, toggle_title, v)
     if key_title:find("fruit",1,true) then setflag("AutoFruit", v) end
 end
 
-Tabs["Tab_Shop"]:AddButton({ Title = "Redeem Code", Callback = function() local f=_G["Redeem_Code"] or _G["OnRedeem_Code"] or _G["DoRedeem_Code"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Teleport Old World", Callback = function() local f=_G["Teleport_Old_World"] or _G["OnTeleport_Old_World"] or _G["DoTeleport_Old_World"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Teleport New World", Callback = function() local f=_G["Teleport_New_World"] or _G["OnTeleport_New_World"] or _G["DoTeleport_New_World"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Teleport Third Sea", Callback = function() local f=_G["Teleport_Third_Sea"] or _G["OnTeleport_Third_Sea"] or _G["DoTeleport_Third_Sea"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Black Leg", Callback = function() local f=_G["Black_Leg"] or _G["OnBlack_Leg"] or _G["DoBlack_Leg"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Fishman Karate", Callback = function() local f=_G["Fishman_Karate"] or _G["OnFishman_Karate"] or _G["DoFishman_Karate"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Electro", Callback = function() local f=_G["Electro"] or _G["OnElectro"] or _G["DoElectro"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Dragon Breath", Callback = function() local f=_G["Dragon_Breath"] or _G["OnDragon_Breath"] or _G["DoDragon_Breath"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "SuperHuman", Callback = function() local f=_G["SuperHuman"] or _G["OnSuperHuman"] or _G["DoSuperHuman"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Death Step", Callback = function() local f=_G["Death_Step"] or _G["OnDeath_Step"] or _G["DoDeath_Step"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Sharkman Karate", Callback = function() local f=_G["Sharkman_Karate"] or _G["OnSharkman_Karate"] or _G["DoSharkman_Karate"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Electric Claw", Callback = function() local f=_G["Electric_Claw"] or _G["OnElectric_Claw"] or _G["DoElectric_Claw"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Dragon Talon", Callback = function() local f=_G["Dragon_Talon"] or _G["OnDragon_Talon"] or _G["DoDragon_Talon"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "God Human", Callback = function() local f=_G["God_Human"] or _G["OnGod_Human"] or _G["DoGod_Human"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Sanguine Art", Callback = function() local f=_G["Sanguine_Art"] or _G["OnSanguine_Art"] or _G["DoSanguine_Art"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Skyjump [ $10,000 Beli ]", Callback = function() local f=_G["Skyjump__10000_Beli_"] or _G["OnSkyjump__10000_Beli_"] or _G["DoSkyjump__10000_Beli_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buso Haki [ $25,000 Beli ]", Callback = function() local f=_G["Buso_Haki__25000_Beli_"] or _G["OnBuso_Haki__25000_Beli_"] or _G["DoBuso_Haki__25000_Beli_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Observation haki [ $750,000 Beli ]", Callback = function() local f=_G["Observation_haki__750000_Beli_"] or _G["OnObservation_haki__750000_Beli_"] or _G["DoObservation_haki__750000_Beli_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Soru [ $100,000 Beli ]", Callback = function() local f=_G["Soru__100000_Beli_"] or _G["OnSoru__100000_Beli_"] or _G["DoSoru__100000_Beli_"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buy Refund Stat (2500F)", Callback = function() local f=_G["Buy_Refund_Stat_2500F"] or _G["OnBuy_Refund_Stat_2500F"] or _G["DoBuy_Refund_Stat_2500F"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buy Reroll Race (3000F)", Callback = function() local f=_G["Buy_Reroll_Race_3000F"] or _G["OnBuy_Reroll_Race_3000F"] or _G["DoBuy_Reroll_Race_3000F"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buy Ghoul Race", Callback = function() local f=_G["Buy_Ghoul_Race"] or _G["OnBuy_Ghoul_Race"] or _G["DoBuy_Ghoul_Race"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Shop"]:AddButton({ Title = "Buy Cyborg Race (2500F)", Callback = function() local f=_G["Buy_Cyborg_Race_2500F"] or _G["OnBuy_Cyborg_Race_2500F"] or _G["DoBuy_Cyborg_Race_2500F"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Status_And_Server"]:AddToggle("Toggle", { Title = "Spam Join", Default = false, Callback = function(v) match_and_set("Toggle", "Spam Join", v) end })
-Tabs["Tab_Status_And_Server"]:AddButton({ Title = "Join Server", Callback = function() local f=_G["Join_Server"] or _G["OnJoin_Server"] or _G["DoJoin_Server"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Status_And_Server"]:AddButton({ Title = "Copy JobId", Callback = function() local f=_G["Copy_JobId"] or _G["OnCopy_JobId"] or _G["DoCopy_JobId"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Status_And_Server"]:AddButton({ Title = "Rejoin Server", Callback = function() local f=_G["Rejoin_Server"] or _G["OnRejoin_Server"] or _G["DoRejoin_Server"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Status_And_Server"]:AddButton({ Title = "Hop Server", Callback = function() local f=_G["Hop_Server"] or _G["OnHop_Server"] or _G["DoHop_Server"]; if type(f)=="function" then pcall(f) end end })
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Shop
+-- removed call on disallowed tab Tab_Status_And_Server
+-- removed call on disallowed tab Tab_Status_And_Server
+-- removed call on disallowed tab Tab_Status_And_Server
+-- removed call on disallowed tab Tab_Status_And_Server
+-- removed call on disallowed tab Tab_Status_And_Server
 Tabs["Tab_Local_Player"]:AddToggle("Toggle", { Title = "Auto Stats", Default = false, Callback = function(v) match_and_set("Toggle", "Auto Stats", v) end })
 Tabs["Tab_Local_Player"]:AddToggle("Toggle_2", { Title = "Auto Summon Cake Prince", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Summon Cake Prince", v) end })
 Tabs["Tab_Local_Player"]:AddToggle("Toggle_3", { Title = "Black Screen", Default = false, Callback = function(v) match_and_set("Toggle_3", "Black Screen", v) end })
@@ -316,21 +315,21 @@ Tabs["Tab_Local_Player"]:AddDropdown("Dropdown_3", { Title = "Select Island", Va
 local values_Dropdown_4 = _G["values_Dropdown_4"]; if type(values_Dropdown_4)~="table" or #values_Dropdown_4==0 then values_Dropdown_4 = {"Selecione"} end
 Tabs["Tab_Local_Player"]:AddDropdown("Dropdown_4", { Title = "Select Island", Values = values_Dropdown_4, Multi = false, Default = values_Dropdown_4[1], Callback = function(choice) _G["Dropdown_4"]=choice end })
 Tabs["Tab_Local_Player"]:AddSlider("Slider", { Title = "Point Stats", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
-Tabs["Setting_Farm"]:AddToggle("Toggle", { Title = "Auto Turn On Buso", Default = false, Callback = function(v) match_and_set("Toggle", "Auto Turn On Buso", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_2", { Title = "Auto Turn On Race V4", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Turn On Race V4", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_3", { Title = "Auto Turn On Race V3", Default = false, Callback = function(v) match_and_set("Toggle_3", "Auto Turn On Race V3", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_4", { Title = "Auto Set Spawn Point", Default = false, Callback = function(v) match_and_set("Toggle_4", "Auto Set Spawn Point", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_5", { Title = "Anti AFK", Default = false, Callback = function(v) match_and_set("Toggle_5", "Anti AFK", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_6", { Title = "Reset Teleport", Default = false, Callback = function(v) match_and_set("Toggle_6", "Reset Teleport", v) end })
-Tabs["Setting_Farm"]:AddToggle("Bypass_TP", { Title = "Stop Reset Teleport When Have Legendary", Default = false, Callback = function(v) match_and_set("Bypass_TP", "Stop Reset Teleport When Have Legendary", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_7", { Title = "Fast Attack", Default = false, Callback = function(v) match_and_set("Toggle_7", "Fast Attack", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_8", { Title = "Bring Mob", Default = false, Callback = function(v) match_and_set("Toggle_8", "Bring Mob", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_9", { Title = "Spin Position", Default = false, Callback = function(v) match_and_set("Toggle_9", "Spin Position", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_10", { Title = "Auto Reduce Lag Farm Safely", Default = false, Callback = function(v) match_and_set("Toggle_10", "Auto Reduce Lag Farm Safely", v) end })
-Tabs["Setting_Farm"]:AddToggle("Toggle_11", { Title = "Anti Cheat Farming", Default = false, Callback = function(v) match_and_set("Toggle_11", "Anti Cheat Farming", v) end })
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
 local values_DropdownFarm = _G["values_DropdownFarm"]; if type(values_DropdownFarm)~="table" or #values_DropdownFarm==0 then values_DropdownFarm = {"Selecione"} end
-Tabs["Setting_Farm"]:AddDropdown("DropdownFarm", { Title = "Select Weapon", Values = values_DropdownFarm, Multi = false, Default = values_DropdownFarm[1], Callback = function(choice) _G["DropdownFarm"]=choice end })
-Tabs["Setting_Farm"]:AddSlider("Slider", { Title = "Farm Distance", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
+-- removed call on disallowed tab Setting_Farm
+-- removed call on disallowed tab Setting_Farm
 Tabs["Tab_Farming"]:AddToggle("Toggle", { Title = "Start Farm", Default = false, Callback = function(v) match_and_set("Toggle", "Start Farm", v) end })
 Tabs["Tab_Farming"]:AddToggle("Toggle_2", { Title = "Farm Material", Default = false, Callback = function(v) match_and_set("Toggle_2", "Farm Material", v) end })
 Tabs["Tab_Farming"]:AddToggle("Toggle_3", { Title = "Auto Farm Mastery", Default = false, Callback = function(v) match_and_set("Toggle_3", "Auto Farm Mastery", v) end })
@@ -365,19 +364,19 @@ Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_15", { Title = "Auto Dough King", Defau
 Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_16", { Title = "Auto Darkbeard", Default = false, Callback = function(v) match_and_set("Toggle_16", "Auto Darkbeard", v) end })
 local values_DropdownFarm = _G["values_DropdownFarm"]; if type(values_DropdownFarm)~="table" or #values_DropdownFarm==0 then values_DropdownFarm = {"Selecione"} end
 Tabs["Tab_Stack_Farm"]:AddDropdown("DropdownFarm", { Title = "Select Melee", Values = values_DropdownFarm, Multi = false, Default = values_DropdownFarm[1], Callback = function(choice) _G["DropdownFarm"]=choice end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle", { Title = "Auto Quest Dojo Trainer", Default = false, Callback = function(v) match_and_set("Toggle", "Auto Quest Dojo Trainer", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_2", { Title = "Auto Upgrade Dragon Talon", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Upgrade Dragon Talon", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_3", { Title = "Auto Attack Hydra Mob And Collect Ember", Default = false, Callback = function(v) match_and_set("Toggle_3", "Auto Attack Hydra Mob And Collect Ember", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_4", { Title = "Auto Collect FireFlower", Default = false, Callback = function(v) match_and_set("Toggle_4", "Auto Collect FireFlower", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("ToggleChest", { Title = "Auto Chest", Default = false, Callback = function(v) match_and_set("ToggleChest", "Auto Chest", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_5", { Title = "Stop When Have God's Chalice& Fist Of Darkness", Default = false, Callback = function(v) match_and_set("Toggle_5", "Stop When Have God's Chalice& Fist Of Darkness", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_6", { Title = "Auto UP Observation V2", Default = false, Callback = function(v) match_and_set("Toggle_6", "Auto UP Observation V2", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_7", { Title = "Farm Observation", Default = false, Callback = function(v) match_and_set("Toggle_7", "Farm Observation", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_8", { Title = "Auto Kill Boss", Default = false, Callback = function(v) match_and_set("Toggle_8", "Auto Kill Boss", v) end })
-Tabs["Tab_Farming_Other"]:AddToggle("Toggle_9", { Title = "Auto Kill All Boss", Default = false, Callback = function(v) match_and_set("Toggle_9", "Auto Kill All Boss", v) end })
-Tabs["Tab_Farming_Other"]:AddButton({ Title = "Teleport To Dragon Dojo", Callback = function() local f=_G["Teleport_To_Dragon_Dojo"] or _G["OnTeleport_To_Dragon_Dojo"] or _G["DoTeleport_To_Dragon_Dojo"]; if type(f)=="function" then pcall(f) end end })
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
+-- removed call on disallowed tab Tab_Farming_Other
 local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table" or #values_Dropdown==0 then values_Dropdown = {"Selecione"} end
-Tabs["Tab_Farming_Other"]:AddDropdown("Dropdown", { Title = "Select Boss", Values = values_Dropdown, Multi = false, Default = values_Dropdown[1], Callback = function(choice) _G["Dropdown"]=choice end })
+-- removed call on disallowed tab Tab_Farming_Other
 Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle", { Title = "Random Devil Fruit", Default = false, Callback = function(v) match_and_set("Toggle", "Random Devil Fruit", v) end })
 Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_2", { Title = "Auto Store Fruit", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Store Fruit", v) end })
 Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_3", { Title = "Buy Blox Fruit Sniper Shop", Default = false, Callback = function(v) match_and_set("Toggle_3", "Buy Blox Fruit Sniper Shop", v) end })
@@ -390,95 +389,95 @@ local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table"
 Tabs["Tab_Fruit_And_Raid"]:AddDropdown("Dropdown", { Title = "Blox Fruit Sniper Shop", Values = values_Dropdown, Multi = false, Default = values_Dropdown[1], Callback = function(choice) _G["Dropdown"]=choice end })
 local values_Dropdown_2 = _G["values_Dropdown_2"]; if type(values_Dropdown_2)~="table" or #values_Dropdown_2==0 then values_Dropdown_2 = {"Selecione"} end
 Tabs["Tab_Fruit_And_Raid"]:AddDropdown("Dropdown_2", { Title = "Select Raid", Values = values_Dropdown_2, Multi = false, Default = values_Dropdown_2[1], Callback = function(choice) _G["Dropdown_2"]=choice end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle", { Title = "Auto Penetrate Rocks When Boat Runs", Default = false, Callback = function(v) match_and_set("Toggle", "Auto Penetrate Rocks When Boat Runs", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_2", { Title = "Auto Sea Event", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Sea Event", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_3", { Title = "Auto Shark", Default = false, Callback = function(v) match_and_set("Toggle_3", "Auto Shark", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_4", { Title = "Auto Piranha", Default = false, Callback = function(v) match_and_set("Toggle_4", "Auto Piranha", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_5", { Title = "Auto Fish Crew", Default = false, Callback = function(v) match_and_set("Toggle_5", "Auto Fish Crew", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_6", { Title = "Auto Ghost Ship", Default = false, Callback = function(v) match_and_set("Toggle_6", "Auto Ghost Ship", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_7", { Title = "Auto Pirate Brigade", Default = false, Callback = function(v) match_and_set("Toggle_7", "Auto Pirate Brigade", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_8", { Title = "Auto Pirate Grand Brigade", Default = false, Callback = function(v) match_and_set("Toggle_8", "Auto Pirate Grand Brigade", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_9", { Title = "Auto Terror Shark", Default = false, Callback = function(v) match_and_set("Toggle_9", "Auto Terror Shark", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_10", { Title = "Auto Sea Beast", Default = false, Callback = function(v) match_and_set("Toggle_10", "Auto Sea Beast", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_11", { Title = "Teleport To Kitsune Island", Default = false, Callback = function(v) match_and_set("Toggle_11", "Teleport To Kitsune Island", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_12", { Title = "Auto Summon Soul EmBer", Default = false, Callback = function(v) match_and_set("Toggle_12", "Auto Summon Soul EmBer", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_13", { Title = "Auto Collect Azure Wisp", Default = false, Callback = function(v) match_and_set("Toggle_13", "Auto Collect Azure Wisp", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_14", { Title = "Auto Trade Azure Ember", Default = false, Callback = function(v) match_and_set("Toggle_14", "Auto Trade Azure Ember", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_15", { Title = "Teleport To Frozen Dimension", Default = false, Callback = function(v) match_and_set("Toggle_15", "Teleport To Frozen Dimension", v) end })
-Tabs["Tab_Sea_Event"]:AddToggle("Toggle_16", { Title = "Auto Attack Leviathan", Default = false, Callback = function(v) match_and_set("Toggle_16", "Auto Attack Leviathan", v) end })
-Tabs["Tab_Sea_Event"]:AddButton({ Title = "Trade Azure Wisp", Callback = function() local f=_G["Trade_Azure_Wisp"] or _G["OnTrade_Azure_Wisp"] or _G["DoTrade_Azure_Wisp"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Sea_Event"]:AddButton({ Title = "Buy Spy", Callback = function() local f=_G["Buy_Spy"] or _G["OnBuy_Spy"] or _G["DoBuy_Spy"]; if type(f)=="function" then pcall(f) end end })
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
 local values_zoneselect = _G["values_zoneselect"]; if type(values_zoneselect)~="table" or #values_zoneselect==0 then values_zoneselect = {"Selecione"} end
-Tabs["Tab_Sea_Event"]:AddDropdown("zoneselect", { Title = "Select Zone", Values = values_zoneselect, Multi = false, Default = values_zoneselect[1], Callback = function(choice) _G["zoneselect"]=choice end })
+-- removed call on disallowed tab Tab_Sea_Event
 local values_selectthuyen = _G["values_selectthuyen"]; if type(values_selectthuyen)~="table" or #values_selectthuyen==0 then values_selectthuyen = {"Selecione"} end
-Tabs["Tab_Sea_Event"]:AddDropdown("selectthuyen", { Title = "Select Boat", Values = values_selectthuyen, Multi = false, Default = values_selectthuyen[1], Callback = function(choice) _G["selectthuyen"]=choice end })
+-- removed call on disallowed tab Tab_Sea_Event
 local values_boattween = _G["values_boattween"]; if type(values_boattween)~="table" or #values_boattween==0 then values_boattween = {"Selecione"} end
-Tabs["Tab_Sea_Event"]:AddDropdown("boattween", { Title = "Speed Tween Boat", Values = values_boattween, Multi = false, Default = values_boattween[1], Callback = function(choice) _G["boattween"]=choice end })
-Tabs["Tab_Sea_Event"]:AddSlider("SliderSpeedBoat", { Title = "Ship Speed", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["SliderSpeedBoat"]=val end })
-Tabs["Tab_Sea_Event"]:AddSlider("Slider", { Title = "Set Azure Ember", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle", { Title = "Select Use Fruit", Default = false, Callback = function(v) match_and_set("Toggle", "Select Use Fruit", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_2", { Title = "Select Use Melee", Default = false, Callback = function(v) match_and_set("Toggle_2", "Select Use Melee", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_3", { Title = "Select Use Sword", Default = false, Callback = function(v) match_and_set("Toggle_3", "Select Use Sword", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_4", { Title = "Select Use Gun", Default = false, Callback = function(v) match_and_set("Toggle_4", "Select Use Gun", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_5", { Title = "Skill Fruit Z", Default = false, Callback = function(v) match_and_set("Toggle_5", "Skill Fruit Z", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_6", { Title = "Skill Fruit X", Default = false, Callback = function(v) match_and_set("Toggle_6", "Skill Fruit X", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_7", { Title = "Skill Fruit C", Default = false, Callback = function(v) match_and_set("Toggle_7", "Skill Fruit C", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_8", { Title = "Skill Fruit V", Default = false, Callback = function(v) match_and_set("Toggle_8", "Skill Fruit V", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_9", { Title = "Skill Fruit F", Default = false, Callback = function(v) match_and_set("Toggle_9", "Skill Fruit F", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_10", { Title = "Skill Melee Z", Default = false, Callback = function(v) match_and_set("Toggle_10", "Skill Melee Z", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_11", { Title = "Skill Melee X", Default = false, Callback = function(v) match_and_set("Toggle_11", "Skill Melee X", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_12", { Title = "Skill Melee C", Default = false, Callback = function(v) match_and_set("Toggle_12", "Skill Melee C", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_13", { Title = "Sword And Gun Skill Z", Default = false, Callback = function(v) match_and_set("Toggle_13", "Sword And Gun Skill Z", v) end })
-Tabs["Tab_Setting_Select_Skill"]:AddToggle("Toggle_14", { Title = "Sword And Gun Skill X", Default = false, Callback = function(v) match_and_set("Toggle_14", "Sword And Gun Skill X", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("MyToggle", { Title = "Teleport Prehistoric Island", Default = false, Callback = function(v) match_and_set("MyToggle", "Teleport Prehistoric Island", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle", { Title = "Auto Event Volcano Island Defense", Default = false, Callback = function(v) match_and_set("Toggle", "Auto Event Volcano Island Defense", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_2", { Title = "Auto Kill Aura Golems", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Kill Aura Golems", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_3", { Title = "Auto Collect Bone", Default = false, Callback = function(v) match_and_set("Toggle_3", "Auto Collect Bone", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_4", { Title = "Auto Collect Egg", Default = false, Callback = function(v) match_and_set("Toggle_4", "Auto Collect Egg", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_5", { Title = "Auto Use Skill Melee", Default = false, Callback = function(v) match_and_set("Toggle_5", "Auto Use Skill Melee", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_6", { Title = "Auto Use Skill Sword", Default = false, Callback = function(v) match_and_set("Toggle_6", "Auto Use Skill Sword", v) end })
-Tabs["Tab_Volcanic_Event"]:AddToggle("Toggle_7", { Title = "Auto Use Skill Gun", Default = false, Callback = function(v) match_and_set("Toggle_7", "Auto Use Skill Gun", v) end })
-Tabs["Tab_Volcanic_Event"]:AddButton({ Title = "Destroy Lava In Prehistoric Island", Callback = function() local f=_G["Destroy_Lava_In_Prehistoric_Island"] or _G["OnDestroy_Lava_In_Prehistoric_Island"] or _G["DoDestroy_Lava_In_Prehistoric_Island"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Volcanic_Event"]:AddButton({ Title = "Crafting Volcanic Magnet", Callback = function() local f=_G["Crafting_Volcanic_Magnet"] or _G["OnCrafting_Volcanic_Magnet"] or _G["DoCrafting_Volcanic_Magnet"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle", { Title = "Teleport To The Draco Clan Trial Door", Default = false, Callback = function(v) match_and_set("Toggle", "Teleport To The Draco Clan Trial Door", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_2", { Title = "Auto Upgrade Race V2", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Upgrade Race V2", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_3", { Title = "Auto Get Cyborg", Default = false, Callback = function(v) match_and_set("Toggle_3", "Auto Get Cyborg", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_4", { Title = "Auto Get Ghoul", Default = false, Callback = function(v) match_and_set("Toggle_4", "Auto Get Ghoul", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_5", { Title = "No Frog", Default = false, Callback = function(v) match_and_set("Toggle_5", "No Frog", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_6", { Title = "Teleport Ancient Clock", Default = false, Callback = function(v) match_and_set("Toggle_6", "Teleport Ancient Clock", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_7", { Title = "Auto Buy Gear", Default = false, Callback = function(v) match_and_set("Toggle_7", "Auto Buy Gear", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_8", { Title = "Auto Finish Train Quest", Default = false, Callback = function(v) match_and_set("Toggle_8", "Auto Finish Train Quest", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_9", { Title = "Teleport To Migare Island", Default = false, Callback = function(v) match_and_set("Toggle_9", "Teleport To Migare Island", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_10", { Title = "Teleport To Highest Point", Default = false, Callback = function(v) match_and_set("Toggle_10", "Teleport To Highest Point", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_11", { Title = "Teleport To Advanced Fruit Dealer", Default = false, Callback = function(v) match_and_set("Toggle_11", "Teleport To Advanced Fruit Dealer", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_12", { Title = "Lock Moon And On Race V3", Default = false, Callback = function(v) match_and_set("Toggle_12", "Lock Moon And On Race V3", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_13", { Title = "Teleport To Blue Gear", Default = false, Callback = function(v) match_and_set("Toggle_13", "Teleport To Blue Gear", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_14", { Title = "Auto Trial Race", Default = false, Callback = function(v) match_and_set("Toggle_14", "Auto Trial Race", v) end })
-Tabs["Tab_Upgrade_Race"]:AddToggle("Toggle_15", { Title = "Auto Kill Player After Trial V4", Default = false, Callback = function(v) match_and_set("Toggle_15", "Auto Kill Player After Trial V4", v) end })
-Tabs["Tab_Upgrade_Race"]:AddButton({ Title = "Teleport To Trial Door", Callback = function() local f=_G["Teleport_To_Trial_Door"] or _G["OnTeleport_To_Trial_Door"] or _G["DoTeleport_To_Trial_Door"]; if type(f)=="function" then pcall(f) end end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle", { Title = "Auto Trade Bone", Default = false, Callback = function(v) match_and_set("Toggle", "Auto Trade Bone", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_2", { Title = "Auto Buy Legendary Sword", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Buy Legendary Sword", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_3", { Title = "Auto Buy Haki Color", Default = false, Callback = function(v) match_and_set("Toggle_3", "Auto Buy Haki Color", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_4", { Title = "Hop Server [ Haki color or Legendary Sword]", Default = false, Callback = function(v) match_and_set("Toggle_4", "Hop Server [ Haki color or Legendary Sword]", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_5", { Title = "Auto Get Rainbow Haki", Default = false, Callback = function(v) match_and_set("Toggle_5", "Auto Get Rainbow Haki", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_6", { Title = "Auto Skull Guitar", Default = false, Callback = function(v) match_and_set("Toggle_6", "Auto Skull Guitar", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_7", { Title = "Auto Get CDK", Default = false, Callback = function(v) match_and_set("Toggle_7", "Auto Get CDK", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_8", { Title = "Auto Yama", Default = false, Callback = function(v) match_and_set("Toggle_8", "Auto Yama", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_9", { Title = "Auto Tushita", Default = false, Callback = function(v) match_and_set("Toggle_9", "Auto Tushita", v) end })
-Tabs["Tab_Get_Items_And_Buy"]:AddToggle("Toggle_10", { Title = "Auto Saber", Default = false, Callback = function(v) match_and_set("Toggle_10", "Auto Saber", v) end })
-Tabs["Tab_ESP"]:AddToggle("Toggle", { Title = "ESP Island", Default = false, Callback = function(v) match_and_set("Toggle", "ESP Island", v) end })
-Tabs["Tab_ESP"]:AddToggle("Toggle_2", { Title = "ESP Fruit", Default = false, Callback = function(v) match_and_set("Toggle_2", "ESP Fruit", v) end })
-Tabs["Tab_ESP"]:AddToggle("Toggle_3", { Title = "ESP Player", Default = false, Callback = function(v) match_and_set("Toggle_3", "ESP Player", v) end })
-Tabs["Tab_PVP"]:AddToggle("MyToggle", { Title = "Teleport Player", Default = false, Callback = function(v) match_and_set("MyToggle", "Teleport Player", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle", { Title = "Auto Aimbot", Default = false, Callback = function(v) match_and_set("Toggle", "Auto Aimbot", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_2", { Title = "Auto Aimbot Gun", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Aimbot Gun", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_3", { Title = "Safe Modes", Default = false, Callback = function(v) match_and_set("Toggle_3", "Safe Modes", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_4", { Title = "Walk On Water", Default = false, Callback = function(v) match_and_set("Toggle_4", "Walk On Water", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_5", { Title = "No Clip", Default = false, Callback = function(v) match_and_set("Toggle_5", "No Clip", v) end })
-Tabs["Tab_PVP"]:AddToggle("Toggle_6", { Title = "Change WalkSpeed", Default = false, Callback = function(v) match_and_set("Toggle_6", "Change WalkSpeed", v) end })
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Sea_Event
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Setting_Select_Skill
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Volcanic_Event
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Upgrade_Race
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_Get_Items_And_Buy
+-- removed call on disallowed tab Tab_ESP
+-- removed call on disallowed tab Tab_ESP
+-- removed call on disallowed tab Tab_ESP
+-- removed call on disallowed tab Tab_PVP
+-- removed call on disallowed tab Tab_PVP
+-- removed call on disallowed tab Tab_PVP
+-- removed call on disallowed tab Tab_PVP
+-- removed call on disallowed tab Tab_PVP
+-- removed call on disallowed tab Tab_PVP
+-- removed call on disallowed tab Tab_PVP
 local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table" or #values_Dropdown==0 then values_Dropdown = {"Selecione"} end
-Tabs["Tab_PVP"]:AddDropdown("Dropdown", { Title = "Select Player PVP", Values = values_Dropdown, Multi = false, Default = values_Dropdown[1], Callback = function(choice) _G["Dropdown"]=choice end })
-Tabs["Tab_PVP"]:AddSlider("Slider", { Title = "Safe Mode At", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
+-- removed call on disallowed tab Tab_PVP
+-- removed call on disallowed tab Tab_PVP
 
 -- Codigo original (inline, sem alteracoes)
 
@@ -8558,8 +8557,6 @@ Button.MouseButton1Click:Connect(function()
         end)
     end
 end)
---\\ ♡VIP♡
-----------------------------------------------------------------------------------------------------
 print("--[[Hop Server If You Meet Game Admin]]--")
 local targetPlayers = {
     ["red_game43"] = true,
