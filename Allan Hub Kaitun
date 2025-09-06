@@ -37,21 +37,12 @@ local Window = Fluent:CreateWindow({
 
 local Tabs = {}
 
--- removed tab Tab_Shop
--- removed tab Tab_Status_And_Server
 Tabs["Tab_Local_Player"] = Window:AddTab({ Title = "Tab Local Player" })
--- removed tab Setting_Farm
+
 Tabs["Tab_Farming"] = Window:AddTab({ Title = "Tab Farming" })
 Tabs["Tab_Stack_Farm"] = Window:AddTab({ Title = "Tab Stack Farm" })
--- removed tab Tab_Farming_Other
+
 Tabs["Tab_Fruit_And_Raid"] = Window:AddTab({ Title = "Tab Fruit And Raid" })
--- removed tab Tab_Sea_Event
--- removed tab Tab_Setting_Select_Skill
--- removed tab Tab_Volcanic_Event
--- removed tab Tab_Upgrade_Race
--- removed tab Tab_Get_Items_And_Buy
--- removed tab Tab_ESP
--- removed tab Tab_PVP
 
 -- Helpers e mapeamento de flags
 
@@ -259,34 +250,6 @@ local function match_and_set(toggle_id, toggle_title, v)
     if key_title:find("fruit",1,true) then setflag("AutoFruit", v) end
 end
 
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Shop
--- removed call on disallowed tab Tab_Status_And_Server
--- removed call on disallowed tab Tab_Status_And_Server
--- removed call on disallowed tab Tab_Status_And_Server
--- removed call on disallowed tab Tab_Status_And_Server
--- removed call on disallowed tab Tab_Status_And_Server
 Tabs["Tab_Local_Player"]:AddToggle("Toggle", { Title = "Auto Stats", Default = false, Callback = function(v) match_and_set("Toggle", "Auto Stats", v) end })
 Tabs["Tab_Local_Player"]:AddToggle("Toggle_2", { Title = "Auto Summon Cake Prince", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Summon Cake Prince", v) end })
 Tabs["Tab_Local_Player"]:AddToggle("Toggle_3", { Title = "Black Screen", Default = false, Callback = function(v) match_and_set("Toggle_3", "Black Screen", v) end })
@@ -315,21 +278,7 @@ Tabs["Tab_Local_Player"]:AddDropdown("Dropdown_3", { Title = "Select Island", Va
 local values_Dropdown_4 = _G["values_Dropdown_4"]; if type(values_Dropdown_4)~="table" or #values_Dropdown_4==0 then values_Dropdown_4 = {"Selecione"} end
 Tabs["Tab_Local_Player"]:AddDropdown("Dropdown_4", { Title = "Select Island", Values = values_Dropdown_4, Multi = false, Default = values_Dropdown_4[1], Callback = function(choice) _G["Dropdown_4"]=choice end })
 Tabs["Tab_Local_Player"]:AddSlider("Slider", { Title = "Point Stats", Min = 0, Max = 100, Default = 50, Increment = 1, Rounding = 0, Callback = function(val) _G["Slider"]=val end })
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
 local values_DropdownFarm = _G["values_DropdownFarm"]; if type(values_DropdownFarm)~="table" or #values_DropdownFarm==0 then values_DropdownFarm = {"Selecione"} end
--- removed call on disallowed tab Setting_Farm
--- removed call on disallowed tab Setting_Farm
 Tabs["Tab_Farming"]:AddToggle("Toggle", { Title = "Start Farm", Default = false, Callback = function(v) match_and_set("Toggle", "Start Farm", v) end })
 Tabs["Tab_Farming"]:AddToggle("Toggle_2", { Title = "Farm Material", Default = false, Callback = function(v) match_and_set("Toggle_2", "Farm Material", v) end })
 Tabs["Tab_Farming"]:AddToggle("Toggle_3", { Title = "Auto Farm Mastery", Default = false, Callback = function(v) match_and_set("Toggle_3", "Auto Farm Mastery", v) end })
@@ -364,19 +313,7 @@ Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_15", { Title = "Auto Dough King", Defau
 Tabs["Tab_Stack_Farm"]:AddToggle("Toggle_16", { Title = "Auto Darkbeard", Default = false, Callback = function(v) match_and_set("Toggle_16", "Auto Darkbeard", v) end })
 local values_DropdownFarm = _G["values_DropdownFarm"]; if type(values_DropdownFarm)~="table" or #values_DropdownFarm==0 then values_DropdownFarm = {"Selecione"} end
 Tabs["Tab_Stack_Farm"]:AddDropdown("DropdownFarm", { Title = "Select Melee", Values = values_DropdownFarm, Multi = false, Default = values_DropdownFarm[1], Callback = function(choice) _G["DropdownFarm"]=choice end })
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
--- removed call on disallowed tab Tab_Farming_Other
 local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table" or #values_Dropdown==0 then values_Dropdown = {"Selecione"} end
--- removed call on disallowed tab Tab_Farming_Other
 Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle", { Title = "Random Devil Fruit", Default = false, Callback = function(v) match_and_set("Toggle", "Random Devil Fruit", v) end })
 Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_2", { Title = "Auto Store Fruit", Default = false, Callback = function(v) match_and_set("Toggle_2", "Auto Store Fruit", v) end })
 Tabs["Tab_Fruit_And_Raid"]:AddToggle("Toggle_3", { Title = "Buy Blox Fruit Sniper Shop", Default = false, Callback = function(v) match_and_set("Toggle_3", "Buy Blox Fruit Sniper Shop", v) end })
@@ -389,95 +326,10 @@ local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table"
 Tabs["Tab_Fruit_And_Raid"]:AddDropdown("Dropdown", { Title = "Blox Fruit Sniper Shop", Values = values_Dropdown, Multi = false, Default = values_Dropdown[1], Callback = function(choice) _G["Dropdown"]=choice end })
 local values_Dropdown_2 = _G["values_Dropdown_2"]; if type(values_Dropdown_2)~="table" or #values_Dropdown_2==0 then values_Dropdown_2 = {"Selecione"} end
 Tabs["Tab_Fruit_And_Raid"]:AddDropdown("Dropdown_2", { Title = "Select Raid", Values = values_Dropdown_2, Multi = false, Default = values_Dropdown_2[1], Callback = function(choice) _G["Dropdown_2"]=choice end })
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
 local values_zoneselect = _G["values_zoneselect"]; if type(values_zoneselect)~="table" or #values_zoneselect==0 then values_zoneselect = {"Selecione"} end
--- removed call on disallowed tab Tab_Sea_Event
 local values_selectthuyen = _G["values_selectthuyen"]; if type(values_selectthuyen)~="table" or #values_selectthuyen==0 then values_selectthuyen = {"Selecione"} end
--- removed call on disallowed tab Tab_Sea_Event
 local values_boattween = _G["values_boattween"]; if type(values_boattween)~="table" or #values_boattween==0 then values_boattween = {"Selecione"} end
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Sea_Event
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Setting_Select_Skill
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Volcanic_Event
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Upgrade_Race
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_Get_Items_And_Buy
--- removed call on disallowed tab Tab_ESP
--- removed call on disallowed tab Tab_ESP
--- removed call on disallowed tab Tab_ESP
--- removed call on disallowed tab Tab_PVP
--- removed call on disallowed tab Tab_PVP
--- removed call on disallowed tab Tab_PVP
--- removed call on disallowed tab Tab_PVP
--- removed call on disallowed tab Tab_PVP
--- removed call on disallowed tab Tab_PVP
--- removed call on disallowed tab Tab_PVP
 local values_Dropdown = _G["values_Dropdown"]; if type(values_Dropdown)~="table" or #values_Dropdown==0 then values_Dropdown = {"Selecione"} end
--- removed call on disallowed tab Tab_PVP
--- removed call on disallowed tab Tab_PVP
 
 -- Codigo original (inline, sem alteracoes)
 
